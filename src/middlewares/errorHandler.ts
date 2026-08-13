@@ -13,3 +13,4 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
 
   return res.status(status).json(errorResponse);
 }
+
