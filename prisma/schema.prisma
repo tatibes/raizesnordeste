@@ -2,10 +2,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
 
 enum PerfilUsuario {
   ADMIN
@@ -51,8 +47,13 @@ model Unidade {
   nome     String   @db.VarChar(100)
   endereco String?  @db.Text
   ativa    Boolean  @default(true)
+  
+  // Relacionamentos existentes
   estoque  EstoqueUnidade[]
   pedidos  Pedido[]
+
+  // ADICIONE esta linha para o relacionamento com Produto
+  produtos Produto[]
 
   @@map("unidades")
 }
@@ -63,6 +64,12 @@ model Produto {
   descricao   String?  @db.Text
   categoria   String?  @db.VarChar(50)
   precoBase   Decimal  @map("preco_base") @db.Decimal(10, 2)
+
+  // adicionei esta coluna para referencia o relacionamento com Unidade e poroduto
+  unidadeId   BigInt   @map("unidade_id")
+  unidade     Unidade  @relation(fields: [unidadeId], references: [id])
+
+  // Relacionamentos existentes
   estoque     EstoqueUnidade[]
   itensPedido ItemPedido[]
 
@@ -87,7 +94,7 @@ model Pedido {
   unidadeId   BigInt       @map("unidade_id")
   canalPedido CanalPedido  @default(APP) @map("canal_pedido")
   status      StatusPedido @default(AGUARDANDO_PAGAMENTO)
-  valorTotal  Decimal      @default(0.00) @map("valor_total") @db.Decimal(10, 2)
+  valorTotal  Float        @default(0.00) @map("valor_total")
   createdAt   DateTime     @default(now()) @map("created_at")
   usuario     Usuario      @relation(fields: [usuarioId], references: [id])
   unidade     Unidade      @relation(fields: [unidadeId], references: [id])

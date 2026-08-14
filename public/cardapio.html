@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cardápio - Raízes do Nordeste</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f9f6f0;
+      color: #333;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #c0392b;
+      color: white;
+      border-radius: 8px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 5px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .filtros {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    select {
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .grid-produtos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card-produto {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s;
+    }
+
+    .card-produto:hover {
+      transform: translateY(-3px);
+    }
+
+    .card-produto h3 {
+      color: #c0392b;
+      margin-bottom: 8px;
+    }
+
+    .card-produto p {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 15px;
+    }
+
+    .card-produto .preco {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #27ae60;
+    }
+
+    .card-produto .categoria {
+      display: inline-block;
+      background: #f39c12;
+      color: white;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      align-self: flex-start;
+    }
+
+    .loading, .erro {
+      text-align: center;
+      grid-column: 1 / -1;
+      font-size: 1.2rem;
+      padding: 40px;
+    }
+
+    .erro { 
+      color: #e74c3c; 
+      background-color: #fceae8;
+      border-radius: 8px;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🌵 Raízes do Nordeste</h1>
+      <p>Cardápio Digital & Sabores Regionais</p>
+    </header>
+
+    <div class="filtros">
+      <label for="selectUnidade"><strong>Selecione a Unidade:</strong></label>
+      <select id="selectUnidade" onchange="carregarCardapio()">
+        <option value="1">Unidade 1 - Recife</option>
+        <option value="2">Unidade 2 - Salvador</option>
+        <option value="3">Unidade 3 - Fortaleza</option>
+      </select>
+    </div>
+
+    <main id="gridProdutos" class="grid-produtos">
+      <div class="loading">A carregar o cardápio...</div>
+    </main>
+  </div>
+
+  <script>
+    // URL base da sua API Node/Express
+    const API_URL = 'http://localhost:3000';
+
+    async function carregarCardapio() {
+      const grid = document.getElementById('gridProdutos');
+      const unidadeId = document.getElementById('selectUnidade').value;
+
+      grid.innerHTML = '<div class="loading">A carregar o cardápio...</div>';
+
+      try {
+        // Chamada ao endpoint GET /unidades/:unidadeId/produtos
+        const response = await fetch(`${API_URL}/unidades/${unidadeId}/produtos`);
+        
+        if (!response.ok) {
+          throw new Error(`Erro na requisição: ${response.status}`);
+        }
+
+        const produtos = await response.json();
+
+        if (!Array.isArray(produtos) || produtos.length === 0) {
+          grid.innerHTML = '<div class="loading">Nenhum produto disponível para esta unidade.</div>';
+          return;
+        }
+
+        grid.innerHTML = ''; // Limpa o estado de loading
+
+        produtos.forEach(produto => {
+          const card = document.createElement('div');
+          card.className = 'card-produto';
+
+          // Garante a leitura correta do preço do banco de dados (preco_base ou preco)
+          const precoValor = Number(produto.preco_base ?? produto.preco ?? 0);
+          const precoFormatado = precoValor.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          });
+
+          card.innerHTML = `
+            <div>
+              <span class="categoria">${produto.categoria || 'Prato Regional'}</span>
+              <h3>${produto.nome}</h3>
+              <p>${produto.descricao || 'Sem descrição disponível.'}</p>
+            </div>
+            <div>
+              <span class="preco">${precoFormatado}</span>
+            </div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar cardápio:', error);
+        grid.innerHTML = `
+          <div class="erro">
+            ⚠️ Erro ao carregar o cardápio.<br>
+            <small>Verifique se o backend está ativo em <code>http://localhost:3000</code> e com o CORS habilitado.</small>
+          </div>
+        `;
+      }
+    }
+
+    // Carrega o cardápio automaticamente assim que o DOM estiver pronto
+    window.addEventListener('DOMContentLoaded', carregarCardapio);
+  </script>
+</body>
+</html>
