@@ -18,7 +18,7 @@ app.get('/health', (req, res) => {
 // Middleware Global de Tratamento de Erros
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor roda na porta ${PORT}`);
