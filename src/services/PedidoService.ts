@@ -6,7 +6,7 @@ interface ItemRequest {
 }
 
 interface CriarPedidoDTO {
-  clienteId: number;
+  usuarioId: number;
   unidadeId: number;
   canalPedido: 'APP' | 'TOTEM' | 'BALCAO' | 'WEB';
   formaPagamento: string;
@@ -32,7 +32,7 @@ export class PedidoService {
           include: { produto: true }
         });
 
-        if (!estoque || estoque.quantidadeDisponivel < item.quantidade) {
+        if (!estoque || estoque.quantidade < item.quantidade) {
           const err: any = new Error(`Estoque insuficiente para o produto ID ${item.produtoId} na unidade.`);
           err.status = 422;
           err.code = 'ESTOQUE_INSUFICIENTE';
@@ -42,7 +42,7 @@ export class PedidoService {
         // Abate o estoque local
         await tx.estoqueUnidade.update({
           where: { id: estoque.id },
-          data: { quantidadeDisponivel: estoque.quantidadeDisponivel - item.quantidade }
+          data: { quantidade: estoque.quantidade - item.quantidade }
         });
 
         const subtotal = Number(estoque.produto.precoBase) * item.quantidade;
@@ -59,7 +59,7 @@ export class PedidoService {
       // 2. Cria o Pedido com o Canal Obrigatório
       const pedido = await tx.pedido.create({
         data: {
-          clienteId: data.clienteId,
+          usuarioId: data.usuarioId,
           unidadeId: data.unidadeId,
           canalPedido: data.canalPedido,
           status: 'AGUARDANDO_PAGAMENTO',
@@ -76,7 +76,7 @@ export class PedidoService {
       // 3. Regista Log de Auditoria (Requisito RNF)
       await tx.logAuditoria.create({
         data: {
-          usuarioId: data.clienteId,
+          usuarioId: data.usuarioId,
           acao: 'CRIAR_PEDIDO',
           recurso: `/pedidos/${pedido.id}`,
           detalhes: { valorTotal, canal: data.canalPedido }
