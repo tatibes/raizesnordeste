@@ -214,8 +214,8 @@
         <span id="currentEnvText" style="font-weight: bold;">...</span>
       </div>
       <div class="env-btns">
-        <button onclick="setEnvironment('localhost')" class="env-btn" id="btnLocal">Usar Localhost (5432)</button>
-        <button onclick="setEnvironment('production')" class="env-btn" id="btnProd">Usar Produção (Servidor)</button>
+        <button onclick="setEnvironment('localhost')" class="env-btn" id="btnLocal">Usar Detectado / Localhost</button>
+        <button onclick="setEnvironment('production')" class="env-btn" id="btnProd">Usar Produção (Customizado)</button>
       </div>
     </div>
 
@@ -277,14 +277,24 @@
   </footer>
 
   <script>
+    function getDefaultAPIUrl() {
+      // Se for carregado via HTTP/HTTPS, usar a própria origem (evita hardcode de porta errado!)
+      if (window.location.protocol.startsWith('http')) {
+        return window.location.origin;
+      }
+      // Se for aberto localmente como arquivo, usar fallback localhost:3000
+      return 'http://localhost:3000';
+    }
+
     function updateEnvUI() {
       const apiUrl = localStorage.getItem('API_URL');
       const text = document.getElementById('currentEnvText');
       const btnLocal = document.getElementById('btnLocal');
       const btnProd = document.getElementById('btnProd');
+      const defaultUrl = getDefaultAPIUrl();
 
-      if (apiUrl === 'http://localhost:5432') {
-        text.textContent = 'Localhost (http://localhost:5432)';
+      if (apiUrl === defaultUrl) {
+        text.textContent = `Automático / Detectado (${defaultUrl})`;
         text.style.color = '#c0392b';
         
         btnLocal.style.backgroundColor = '#c0392b';
@@ -295,8 +305,7 @@
         btnProd.style.color = '#333';
         btnProd.style.borderColor = '#ccc';
       } else {
-        const displayUrl = apiUrl || 'Hospedagem Relativa (Mesmo Servidor)';
-        text.textContent = `Produção (${displayUrl})`;
+        text.textContent = `Produção / Customizado (${apiUrl})`;
         text.style.color = '#27ae60';
         
         btnProd.style.backgroundColor = '#27ae60';
@@ -311,21 +320,21 @@
 
     function setEnvironment(env) {
       if (env === 'localhost') {
-        localStorage.setItem('API_URL', 'http://localhost:5432');
+        localStorage.setItem('API_URL', getDefaultAPIUrl());
       } else {
-        const currentUrl = localStorage.getItem('API_URL') === 'http://localhost:5432' ? '' : localStorage.getItem('API_URL') || '';
-        const customUrl = prompt('Digite a URL da API de Produção (deixe em branco para usar o mesmo servidor de hospedagem):', currentUrl);
-        if (customUrl !== null) {
+        const currentUrl = localStorage.getItem('API_URL') === getDefaultAPIUrl() ? '' : localStorage.getItem('API_URL') || '';
+        const customUrl = prompt('Digite a URL da API de Produção (ex: https://raizesnordeste-api.onrender.com):', currentUrl);
+        if (customUrl !== null && customUrl.trim() !== '') {
           localStorage.setItem('API_URL', customUrl.trim());
         }
       }
       updateEnvUI();
     }
 
-    // Inicialização da porta
+    // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('API_URL') === null) {
-        localStorage.setItem('API_URL', 'http://localhost:5432');
+        localStorage.setItem('API_URL', getDefaultAPIUrl());
       }
       updateEnvUI();
     });

@@ -182,9 +182,16 @@
   </div>
 
   <script>
-    // Obter URL base do localStorage com fallback para localhost:5432 se não estiver definido
+    function getDefaultAPIUrl() {
+      if (window.location.protocol.startsWith('http')) {
+        return window.location.origin;
+      }
+      return 'http://localhost:3000';
+    }
+
+    // Obter URL base do localStorage com fallback dinâmico
     if (localStorage.getItem('API_URL') === null) {
-      localStorage.setItem('API_URL', 'http://localhost:5432');
+      localStorage.setItem('API_URL', getDefaultAPIUrl());
     }
     const API_URL = localStorage.getItem('API_URL');
 

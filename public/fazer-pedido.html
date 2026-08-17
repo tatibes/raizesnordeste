@@ -338,7 +338,7 @@
 
   <div class="container">
     <header>
-      <h1>🌵 Raízes do Nordeste</h1>
+      <h1>Raízes do Nordeste</h1>
       <p>Terminal de Vendas & Delivery</p>
     </header>
 
@@ -435,8 +435,15 @@
   </div>
 
   <script>
+    function getDefaultAPIUrl() {
+      if (window.location.protocol.startsWith('http')) {
+        return window.location.origin;
+      }
+      return 'http://localhost:3000';
+    }
+
     if (localStorage.getItem('API_URL') === null) {
-      localStorage.setItem('API_URL', 'http://localhost:5432');
+      localStorage.setItem('API_URL', getDefaultAPIUrl());
     }
     const API_URL = localStorage.getItem('API_URL');
 
