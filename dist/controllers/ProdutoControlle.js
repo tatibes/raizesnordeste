@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const prismaClient_1 = require("../database/prismaClient");
 const router = (0, express_1.Router)();
 // Exemplo de dados mockados (caso ainda não esteja conectado a um banco de dados)
 const produtosMock = [
@@ -44,11 +45,14 @@ const produtosMock = [
 router.get('/unidades/:unidadeId/produtos', async (req, res) => {
     try {
         const { unidadeId } = req.params;
-        // Se estiver usando Banco de Dados (Prisma, TypeORM, Knex, etc.):
-        // const produtos = await prisma.produto.findMany({
-        //   where: { unidadeId: Number(unidadeId) }
-        // });
-        // Exemplo estático/mock para testes:
+        // Busca os produtos do banco de dados
+        const produtos = await prismaClient_1.prisma.produto.findMany({
+            where: { unidadeId: Number(unidadeId) }
+        });
+        if (produtos.length > 0) {
+            return res.status(200).json(produtos);
+        }
+        // Exemplo estático/mock para testes como fallback:
         const produtosFiltrados = produtosMock.filter((p) => p.unidadeId === Number(unidadeId));
         return res.status(200).json(produtosFiltrados);
     }

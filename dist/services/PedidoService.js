@@ -60,8 +60,7 @@ class PedidoService {
                 data: {
                     usuarioId: data.usuarioId,
                     acao: 'CRIAR_PEDIDO',
-                    recurso: `/pedidos/${pedido.id}`,
-                    detalhes: { valorTotal, canal: data.canalPedido }
+                    detalhes: { valorTotal, canal: data.canalPedido, recurso: `/pedidos/${pedido.id}` }
                 }
             });
             return {

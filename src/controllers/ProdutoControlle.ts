@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { prisma } from '../database/prismaClient';
 
 const router = Router();
 
@@ -46,12 +47,16 @@ router.get('/unidades/:unidadeId/produtos', async (req: Request, res: Response) 
   try {
     const { unidadeId } = req.params;
 
-    // Se estiver usando Banco de Dados (Prisma, TypeORM, Knex, etc.):
-    // const produtos = await prisma.produto.findMany({
-    //   where: { unidadeId: Number(unidadeId) }
-    // });
+    // Busca os produtos do banco de dados
+    const produtos = await prisma.produto.findMany({
+      where: { unidadeId: Number(unidadeId) }
+    });
 
-    // Exemplo estático/mock para testes:
+    if (produtos.length > 0) {
+      return res.status(200).json(produtos);
+    }
+
+    // Exemplo estático/mock para testes como fallback:
     const produtosFiltrados = produtosMock.filter(
       (p) => p.unidadeId === Number(unidadeId)
     );
