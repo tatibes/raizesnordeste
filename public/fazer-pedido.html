@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fazer Pedido - Raízes do Nordeste</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f9f6f0;
+      color: #333;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 20px;
+      background-color: #c0392b;
+      color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 5px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .nav-links a {
+      color: #c0392b;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* Layout de duas colunas */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 25px;
+    }
+
+    @media (max-width: 850px) {
+      .app-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-title {
+      color: #c0392b;
+      margin-bottom: 15px;
+      font-size: 1.4rem;
+      border-bottom: 2px solid #c0392b;
+      padding-bottom: 5px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+    }
+
+    /* Filtros do Cardápio */
+    .filtros {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .filtro-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    select, input {
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    /* Listagem de Produtos */
+    .produtos-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .produto-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-radius: 6px;
+      background: #fdfcf9;
+      border: 1px solid #eee;
+    }
+
+    .produto-info h3 {
+      font-size: 1.1rem;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    .produto-info p {
+      font-size: 0.85rem;
+      color: #777;
+    }
+
+    .produto-action {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .preco-base {
+      font-weight: bold;
+      color: #27ae60;
+      font-size: 1.1rem;
+    }
+
+    .btn-add {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    .btn-add:hover {
+      background-color: #219653;
+    }
+
+    /* Autenticação */
+    .auth-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fef5e7;
+      border: 1px solid #f5c6cb;
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .auth-banner-logged {
+      background-color: #e8f8f5;
+      border-color: #a3e4d7;
+    }
+
+    .btn-auth {
+      background-color: #e67e22;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-logout {
+      background-color: #7f8c8d;
+    }
+
+    /* Carrinho */
+    .carrinho-itens {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .carrinho-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .carrinho-item-info {
+      font-weight: 500;
+    }
+
+    .carrinho-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .carrinho-btn-qtd {
+      background: #eee;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .carrinho-btn-qtd:hover {
+      background: #ddd;
+    }
+
+    .carrinho-item-total {
+      font-weight: bold;
+      color: #27ae60;
+      min-width: 70px;
+      text-align: right;
+    }
+
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #e74c3c;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* Resumo e Fechamento */
+    .resumo-linha {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+    }
+
+    .resumo-total {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #27ae60;
+      border-top: 2px solid #eee;
+      padding-top: 10px;
+    }
+
+    .btn-buy {
+      background-color: #c0392b;
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.2s;
+    }
+
+    .btn-buy:hover {
+      background-color: #962d22;
+    }
+
+    .btn-buy:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .modal-title {
+      font-size: 1.4rem;
+      color: #27ae60;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .modal-btn {
+      background-color: #c0392b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🌵 Raízes do Nordeste</h1>
+      <p>Terminal de Vendas & Delivery</p>
+    </header>
+
+    <div class="nav-links">
+      <a href="index.html">⬅ Voltar ao Portal de Sistemas</a>
+    </div>
+
+    <!-- Banner de Autenticação -->
+    <div id="authBanner" class="auth-banner">
+      <div>
+        <span>🔒 <strong>Atenção:</strong> Você precisa fazer login para enviar o pedido à cozinha.</span>
+      </div>
+      <button onclick="fazerLoginDemo()" class="btn-auth">Entrar como Maria (Cliente Demo)</button>
+    </div>
+
+    <div class="app-layout">
+      <!-- Coluna da Esquerda: Escolha de Produtos -->
+      <div>
+        <div class="card">
+          <h2 class="section-title">1. Escolha a Plataforma & Unidade</h2>
+          <div class="filtros">
+            <div class="filtro-item">
+              <label for="selectPlataforma"><strong>Plataforma / Canal:</strong></label>
+              <select id="selectPlataforma" onchange="alternarPlataforma()">
+                <option value="APP">Aplicativo (APP)</option>
+                <option value="WEB">Web Browser (WEB)</option>
+                <option value="BALCAO">Balcão (BALCÃO)</option>
+                <option value="TOTEM">Totem (TOTEM)</option>
+              </select>
+            </div>
+            <div class="filtro-item">
+              <label for="selectUnidade"><strong>Selecione a Unidade:</strong></label>
+              <select id="selectUnidade" onchange="carregarProdutos()">
+                <option value="">A carregar unidades...</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title">2. Selecione os Pratos Regionais</h2>
+          <div id="produtosList" class="produtos-list">
+            <div class="loading" style="text-align: center; padding: 20px;">Por favor, selecione uma unidade para carregar o cardápio.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna da Direita: Carrinho & Fechamento -->
+      <div>
+        <div class="card">
+          <h2 class="section-title">3. Carrinho de Compras</h2>
+          <div id="carrinhoVazio" style="text-align: center; color: #777; padding: 20px;">
+            🛒 Seu carrinho está vazio.<br>Adicione delícias nordestinas à esquerda!
+          </div>
+          <ul id="carrinhoItens" class="carrinho-itens" style="display: none;">
+            <!-- Itens preenchidos via JS -->
+          </ul>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 8px;">Forma de Pagamento:</label>
+            <select id="formaPagamento" class="form-control" style="width: 100%;">
+              <option value="PIX">PIX (Recomendado)</option>
+              <option value="CARTAO_DEBITO">Cartão de Débito</option>
+              <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+              <option value="DINHEIRO">Dinheiro</option>
+            </select>
+          </div>
+
+          <div class="resumo-linha">
+            <span>Subtotal:</span>
+            <span id="resumoSubtotal">R$ 0,00</span>
+          </div>
+          <div class="resumo-linha resumo-total">
+            <span>Valor Total:</span>
+            <span id="resumoTotal">R$ 0,00</span>
+          </div>
+
+          <button id="btnComprar" onclick="finalizarPedido()" class="btn-buy" disabled>
+            Finalizar Pedido & Comprar 🛒
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Sucesso -->
+  <div id="modalSucesso" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-icon">🎉</div>
+      <div class="modal-title">Pedido Comprado!</div>
+      <p id="modalMensagem" style="font-size: 1.05rem; line-height: 1.5; color: #555; margin-bottom: 15px;">Seu pedido foi recebido com sucesso e já está na fila de preparação.</p>
+      <button onclick="fecharModal()" class="modal-btn">Ok, continuar</button>
+    </div>
+  </div>
+
+  <script>
+    if (localStorage.getItem('API_URL') === null) {
+      localStorage.setItem('API_URL', 'http://localhost:5432');
+    }
+    const API_URL = localStorage.getItem('API_URL');
+
+    let produtosLoaded = [];
+    let carrinho = []; // Array de { produtoId, nome, preco, quantidade }
+
+    async function carregarUnidades() {
+      const select = document.getElementById('selectUnidade');
+      try {
+        const response = await fetch(`${API_URL}/unidades`);
+        if (!response.ok) throw new Error('Erro ao buscar unidades.');
+        const unidades = await response.json();
+
+        select.innerHTML = '<option value="">Selecione uma unidade...</option>';
+        unidades.forEach((unidade, idx) => {
+          const option = document.createElement('option');
+          option.value = unidade.id;
+          option.textContent = unidade.nome;
+          if (idx === 0) option.selected = true; // Unidade padrão
+          select.appendChild(option);
+        });
+
+        if (unidades.length > 0) {
+          carregarProdutos();
+        }
+      } catch (error) {
+        console.error(error);
+        select.innerHTML = '<option value="">Erro ao carregar unidades</option>';
+      }
+    }
+
+    async function carregarProdutos() {
+      const listDiv = document.getElementById('produtosList');
+      const unidadeId = document.getElementById('selectUnidade').value;
+
+      if (!unidadeId) {
+        listDiv.innerHTML = '<div style="text-align: center; padding: 20px;">Por favor, selecione uma unidade.</div>';
+        return;
+      }
+
+      listDiv.innerHTML = '<div style="text-align: center; padding: 20px;">A carregar cardápio...</div>';
+
+      try {
+        const response = await fetch(`${API_URL}/unidades/${unidadeId}/produtos`);
+        if (!response.ok) throw new Error('Erro ao carregar produtos.');
+        produtosLoaded = await response.json();
+
+        if (produtosLoaded.length === 0) {
+          listDiv.innerHTML = '<div style="text-align: center; padding: 20px;">Nenhum produto disponível nesta unidade.</div>';
+          return;
+        }
+
+        listDiv.innerHTML = '';
+        produtosLoaded.forEach(produto => {
+          const row = document.createElement('div');
+          row.className = 'produto-item';
+
+          const preco = Number(produto.precoBase ?? produto.preco_base ?? 0);
+          const precoFormatado = preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+          row.innerHTML = `
+            <div class="produto-info">
+              <h3>${produto.nome}</h3>
+              <p>${produto.descricao || 'Sem descrição.'}</p>
+            </div>
+            <div class="produto-action">
+              <span class="preco-base">${precoFormatado}</span>
+              <button onclick="adicionarAoCarrinho(${produto.id}, '${produto.nome.replace(/'/g, "\\'")}', ${preco})" class="btn-add">Adicionar +</button>
+            </div>
+          `;
+          listDiv.appendChild(row);
+        });
+      } catch (error) {
+        console.error(error);
+        listDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">Erro ao carregar pratos.</div>';
+      }
+    }
+
+    function alternarPlataforma() {
+      // Forçar atualização do carrinho ou botão se necessário
+      atualizarCarrinhoUI();
+    }
+
+    function adicionarAoCarrinho(produtoId, nome, preco) {
+      const itemExistente = carrinho.find(item => item.produtoId === produtoId);
+      if (itemExistente) {
+        itemExistente.quantidade++;
+      } else {
+        carrinho.push({ produtoId, nome, preco, quantidade: 1 });
+      }
+      atualizarCarrinhoUI();
+    }
+
+    function alterarQuantidade(produtoId, delta) {
+      const item = carrinho.find(item => item.produtoId === produtoId);
+      if (item) {
+        item.quantidade += delta;
+        if (item.quantidade <= 0) {
+          carrinho = carrinho.filter(item => item.produtoId !== produtoId);
+        }
+      }
+      atualizarCarrinhoUI();
+    }
+
+    function removerDoCarrinho(produtoId) {
+      carrinho = carrinho.filter(item => item.produtoId !== produtoId);
+      atualizarCarrinhoUI();
+    }
+
+    function atualizarCarrinhoUI() {
+      const vazioDiv = document.getElementById('carrinhoVazio');
+      const itensUl = document.getElementById('carrinhoItens');
+      const btnComprar = document.getElementById('btnComprar');
+      const resumoSubtotal = document.getElementById('resumoSubtotal');
+      const resumoTotal = document.getElementById('resumoTotal');
+
+      if (carrinho.length === 0) {
+        vazioDiv.style.display = 'block';
+        itensUl.style.display = 'none';
+        btnComprar.disabled = true;
+        resumoSubtotal.textContent = 'R$ 0,00';
+        resumoTotal.textContent = 'R$ 0,00';
+        return;
+      }
+
+      vazioDiv.style.display = 'none';
+      itensUl.style.display = 'block';
+
+      // Verificar token no localStorage para habilitar botão
+      const token = localStorage.getItem('auth_token');
+      btnComprar.disabled = !token;
+
+      itensUl.innerHTML = '';
+      let subtotal = 0;
+
+      carrinho.forEach(item => {
+        const totalItem = item.preco * item.quantidade;
+        subtotal += totalItem;
+
+        const li = document.createElement('li');
+        li.className = 'carrinho-item';
+        li.innerHTML = `
+          <div class="carrinho-item-info">
+            <span>${item.nome}</span>
+          </div>
+          <div class="carrinho-controls">
+            <button onclick="alterarQuantidade(${item.produtoId}, -1)" class="carrinho-btn-qtd">-</button>
+            <span style="font-weight: bold; min-width: 20px; text-align: center;">${item.quantidade}</span>
+            <button onclick="alterarQuantidade(${item.produtoId}, 1)" class="carrinho-btn-qtd">+</button>
+            <span class="carrinho-item-total">${totalItem.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+            <button onclick="removerDoCarrinho(${item.produtoId})" class="btn-remove">🗑️</button>
+          </div>
+        `;
+        itensUl.appendChild(li);
+      });
+
+      const totalFormatado = subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      resumoSubtotal.textContent = totalFormatado;
+      resumoTotal.textContent = totalFormatado;
+    }
+
+    async function finalizarPedido() {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Por favor, faça login para finalizar a compra.');
+        return;
+      }
+
+      const unidadeId = document.getElementById('selectUnidade').value;
+      const canalPedido = document.getElementById('selectPlataforma').value;
+      const formaPagamento = document.getElementById('formaPagamento').value;
+
+      const itens = carrinho.map(item => ({
+        produtoId: item.produtoId,
+        quantidade: item.quantidade
+      }));
+
+      const btnComprar = document.getElementById('btnComprar');
+      btnComprar.disabled = true;
+      btnComprar.textContent = 'A processar pedido...';
+
+      try {
+        const response = await fetch(`${API_URL}/pedidos`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            unidadeId: parseInt(unidadeId),
+            canalPedido,
+            formaPagamento,
+            itens
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.message || errData.error || 'Erro ao processar pedido.');
+        }
+
+        const pedidoCriado = await response.json();
+        
+        // Exibir modal de sucesso
+        const totalPedido = Number(pedidoCriado.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        document.getElementById('modalMensagem').innerHTML = `
+          Seu pedido <strong>#${pedidoCriado.pedidoId}</strong> foi gerado com sucesso!<br>
+          Canal: <strong>${pedidoCriado.canalPedido}</strong><br>
+          Status: <strong>${pedidoCriado.status.replace('_', ' ')}</strong><br>
+          Total pago: <strong style="color: #27ae60;">${totalPedido}</strong><br><br>
+          O painel de preparação da cozinha já foi alertado!
+        `;
+        
+        document.getElementById('modalSucesso').style.display = 'flex';
+        
+        // Limpar carrinho
+        carrinho = [];
+        atualizarCarrinhoUI();
+
+      } catch (error) {
+        console.error(error);
+        alert(`❌ Erro: ${error.message}`);
+        atualizarCarrinhoUI();
+      } finally {
+        btnComprar.textContent = 'Finalizar Pedido & Comprar 🛒';
+      }
+    }
+
+    function fecharModal() {
+      document.getElementById('modalSucesso').style.display = 'none';
+    }
+
+    // Auth Helpers
+    async function fazerLoginDemo() {
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: 'maria@email.com',
+            senha: 'mariasecret123'
+          })
+        });
+
+        if (!response.ok) throw new Error('Falha no login automático.');
+        const data = await response.json();
+
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('auth_user', JSON.stringify(data.usuario));
+
+        verificarAuth();
+        atualizarCarrinhoUI();
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao realizar login automático.');
+      }
+    }
+
+    function fazerLogout() {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      verificarAuth();
+      atualizarCarrinhoUI();
+    }
+
+    function verificarAuth() {
+      const token = localStorage.getItem('auth_token');
+      const userStr = localStorage.getItem('auth_user');
+      const banner = document.getElementById('authBanner');
+
+      if (token && userStr) {
+        const user = JSON.parse(userStr);
+        banner.className = 'auth-banner auth-banner-logged';
+        banner.innerHTML = `
+          <div>
+            <span>🔓 Conectado como <strong>${user.nome}</strong> (${user.email}) | Perfil: <strong>${user.perfil}</strong></span>
+          </div>
+          <button onclick="fazerLogout()" class="btn-auth btn-logout">Sair / Desconectar</button>
+        `;
+      } else {
+        banner.className = 'auth-banner';
+        banner.innerHTML = `
+          <div>
+            <span>🔒 <strong>Atenção:</strong> Você precisa fazer login para enviar o pedido à cozinha.</span>
+          </div>
+          <button onclick="fazerLoginDemo()" class="btn-auth">Entrar como Maria (Cliente Demo)</button>
+        `;
+      }
+    }
+
+    // Inicialização
+    window.addEventListener('DOMContentLoaded', () => {
+      verificarAuth();
+      carregarUnidades();
+    });
+  </script>
+</body>
+</html>
