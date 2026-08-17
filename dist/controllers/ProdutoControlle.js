@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const prismaClient_1 = require("../database/prismaClient");
 const router = (0, express_1.Router)();
-// Exemplo de dados mockados (caso ainda não esteja conectado a um banco de dados)
+// Exemplo de dados mockados para testes locais
 const produtosMock = [
     {
         id: 1,
@@ -59,6 +59,60 @@ router.get('/unidades/:unidadeId/produtos', async (req, res) => {
     catch (error) {
         console.error('Erro ao buscar produtos do cardápio:', error);
         return res.status(500).json({ error: 'Erro interno ao carregar o cardápio.' });
+    }
+});
+/**
+ * GET /unidades
+ * Retorna todas as unidades cadastradas no sistema
+ */
+router.get('/unidades', async (req, res) => {
+    try {
+        const unidades = await prismaClient_1.prisma.unidade.findMany({
+            orderBy: { nome: 'asc' }
+        });
+        return res.status(200).json(unidades);
+    }
+    catch (error) {
+        console.error('Erro ao buscar unidades:', error);
+        return res.status(500).json({ error: 'Erro interno ao carregar as unidades.' });
+    }
+});
+/**
+ * POST /produtos
+ * Cria um novo produto e inicializa o estoque dele para a respectiva unidade
+ */
+router.post('/produtos', async (req, res) => {
+    try {
+        const { nome, descricao, categoria, precoBase, unidadeId, quantidadeEstoque } = req.body;
+        if (!nome || !precoBase || !unidadeId) {
+            return res.status(400).json({ error: 'Campos nome, precoBase e unidadeId são obrigatórios.' });
+        }
+        const produto = await prismaClient_1.prisma.$transaction(async (tx) => {
+            // 1. Criar o produto
+            const novoProduto = await tx.produto.create({
+                data: {
+                    nome,
+                    descricao,
+                    categoria,
+                    precoBase: Number(precoBase),
+                    unidadeId: BigInt(unidadeId)
+                }
+            });
+            // 2. Criar ou inicializar o estoque na unidade
+            await tx.estoqueUnidade.create({
+                data: {
+                    unidadeId: BigInt(unidadeId),
+                    produtoId: novoProduto.id,
+                    quantidade: quantidadeEstoque ? Number(quantidadeEstoque) : 0
+                }
+            });
+            return novoProduto;
+        });
+        return res.status(201).json(produto);
+    }
+    catch (error) {
+        console.error('Erro ao cadastrar produto:', error);
+        return res.status(500).json({ error: 'Erro interno ao cadastrar produto.' });
     }
 });
 exports.default = router;

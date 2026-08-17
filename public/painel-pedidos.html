@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Pedidos - Raízes do Nordeste</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f9f6f0;
+      color: #333;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 20px;
+      background-color: #c0392b;
+      color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 5px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .nav-links a {
+      color: #c0392b;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .select-unidade-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    select {
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .btn-refresh {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-refresh:hover {
+      background-color: #219653;
+    }
+
+    /* Lista de Pedidos */
+    .pedidos-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .pedido-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      border-left: 6px solid #ccc;
+      transition: transform 0.2s;
+    }
+
+    .pedido-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Cores de bordas para os diferentes status */
+    .status-aguardando_pagamento { border-left-color: #f39c12; }
+    .status-em_preparacao { border-left-color: #3498db; }
+    .status-pronto { border-left-color: #2ecc71; }
+    .status-entregue { border-left-color: #27ae60; }
+    .status-cancelado { border-left-color: #e74c3c; }
+
+    .pedido-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .pedido-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pedido-id {
+      font-weight: bold;
+      color: #c0392b;
+      font-size: 1.1rem;
+    }
+
+    /* Tags de Canal */
+    .tag-canal {
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 12px;
+      color: white;
+      text-transform: uppercase;
+    }
+
+    .canal-app { background-color: #2980b9; }
+    .canal-totem { background-color: #e67e22; }
+    .canal-balcao { background-color: #27ae60; }
+    .canal-web { background-color: #8e44ad; }
+    .canal-pickup { background-color: #16a085; }
+
+    .pedido-status-badge {
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge-aguardando_pagamento { background-color: #fef5e7; color: #d35400; }
+    .badge-em_preparacao { background-color: #ebf5fb; color: #2980b9; }
+    .badge-pronto { background-color: #e8f8f5; color: #117a65; }
+    .badge-entregue { background-color: #e8f8f5; color: #27ae60; }
+    .badge-cancelado { background-color: #fceae8; color: #c0392b; }
+
+    .pedido-body {
+      margin-bottom: 15px;
+    }
+
+    .itens-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.95rem;
+      border-bottom: 1px dotted #f5f5f5;
+    }
+
+    .item-row:last-child {
+      border-bottom: none;
+    }
+
+    .item-nome {
+      font-weight: 500;
+    }
+
+    .item-qtd {
+      color: #c0392b;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .pedido-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    .pedido-total {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #27ae60;
+    }
+
+    .no-orders, .loading {
+      text-align: center;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      font-size: 1.1rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🌵 Raízes do Nordeste</h1>
+      <p>Painel de Monitoramento de Pedidos</p>
+    </header>
+
+    <div class="nav-links">
+      <a href="cardapio.html">⬅ Cardápio Digital</a>
+      <a href="cadastro-produto.html">Acessar Cadastro de Produtos ➡</a>
+    </div>
+
+    <div class="controls">
+      <div class="select-unidade-container">
+        <label for="selectUnidade"><strong>Unidade de Preparação:</strong></label>
+        <select id="selectUnidade" onchange="carregarPedidos()">
+          <option value="">A carregar unidades...</option>
+        </select>
+      </div>
+
+      <button onclick="carregarPedidos()" class="btn-refresh">
+        🔄 Atualizar Painel
+      </button>
+    </div>
+
+    <main id="painelPedidos" class="pedidos-list">
+      <div class="loading">Selecione uma unidade para exibir os pedidos.</div>
+    </main>
+  </div>
+
+  <script>
+    const API_URL = ''; // Usar caminhos relativos
+    let refreshInterval = null;
+
+    async function carregarUnidades() {
+      const select = document.getElementById('selectUnidade');
+      try {
+        const response = await fetch(`${API_URL}/unidades`);
+        if (!response.ok) throw new Error('Erro ao buscar unidades.');
+        const unidades = await response.json();
+
+        select.innerHTML = '<option value="">Selecione uma unidade...</option>';
+        unidades.forEach((unidade, index) => {
+          const option = document.createElement('option');
+          option.value = unidade.id;
+          option.textContent = unidade.nome;
+          
+          // Seleciona a primeira unidade automaticamente por padrão
+          if (index === 0) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        });
+
+        // Se tiver unidades carregadas, carrega os pedidos da unidade padrão selecionada
+        if (unidades.length > 0) {
+          carregarPedidos();
+        }
+      } catch (error) {
+        console.error(error);
+        select.innerHTML = '<option value="">Erro ao carregar unidades</option>';
+      }
+    }
+
+    async function carregarPedidos() {
+      const painel = document.getElementById('painelPedidos');
+      const unidadeId = document.getElementById('selectUnidade').value;
+
+      if (!unidadeId) {
+        painel.innerHTML = '<div class="no-orders">Por favor, selecione uma unidade para ver os pedidos.</div>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/unidades/${unidadeId}/pedidos`);
+        if (!response.ok) throw new Error('Erro ao carregar pedidos.');
+        const pedidos = await response.json();
+
+        if (!Array.isArray(pedidos) || pedidos.length === 0) {
+          painel.innerHTML = '<div class="no-orders">Nenhum pedido registrado nesta unidade até o momento.</div>';
+          return;
+        }
+
+        painel.innerHTML = ''; // Limpa estado de loading/erro
+
+        pedidos.forEach(pedido => {
+          const card = document.createElement('div');
+          
+          // Mapeamento de classe de bordas do status
+          const statusClass = `status-${pedido.status.toLowerCase()}`;
+          card.className = `pedido-card ${statusClass}`;
+
+          // Formatar Data
+          const dataPedido = new Date(pedido.createdAt).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+
+          // Nome do cliente
+          const nomeCliente = pedido.usuario?.nome || 'Cliente Desconhecido';
+
+          // Itens HTML
+          let itensHtml = '';
+          pedido.itens.forEach(item => {
+            const nomeProd = item.produto?.nome || 'Produto Removido';
+            const subtotal = Number(item.subtotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            itensHtml += `
+              <li class="item-row">
+                <div>
+                  <span class="item-qtd">${item.quantidade}x</span>
+                  <span class="item-nome">${nomeProd}</span>
+                </div>
+                <div>${subtotal}</div>
+              </li>
+            `;
+          });
+
+          // Valor total formatado
+          const totalFormatado = Number(pedido.valorTotal).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+          });
+
+          card.innerHTML = `
+            <div class="pedido-header">
+              <div class="pedido-meta">
+                <span class="pedido-id">Pedido #${pedido.id}</span>
+                <span class="tag-canal canal-${pedido.canalPedido.toLowerCase()}">${pedido.canalPedido}</span>
+              </div>
+              <span class="pedido-status-badge badge-${pedido.status.toLowerCase()}">${pedido.status.replace('_', ' ')}</span>
+            </div>
+            <div class="pedido-body">
+              <ul class="itens-list">
+                ${itensHtml}
+              </ul>
+            </div>
+            <div class="pedido-footer">
+              <span>Cliente: <strong>${nomeCliente}</strong> | Horário: ${dataPedido}</span>
+              <span class="pedido-total">${totalFormatado}</span>
+            </div>
+          `;
+
+          painel.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar painel de pedidos:', error);
+        painel.innerHTML = `
+          <div class="no-orders" style="color: #c0392b; background-color: #fceae8;">
+            ⚠️ Erro ao atualizar o painel de pedidos.<br>
+            <small>${error.message || 'Erro de comunicação com o servidor.'}</small>
+          </div>
+        `;
+      }
+    }
+
+    // Inicializa a página e configura auto-refresh a cada 5 segundos
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarUnidades();
+      
+      // Auto refresh de 5 segundos para simular atualização em tempo real
+      if (refreshInterval) clearInterval(refreshInterval);
+      refreshInterval = setInterval(carregarPedidos, 5000);
+    });
+  </script>
+</body>
+</html>

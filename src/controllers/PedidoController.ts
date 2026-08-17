@@ -1,7 +1,40 @@
 import { Request, Response, NextFunction } from 'express';
 import { PedidoService } from '../services/PedidoService';
+import { prisma } from '../database/prismaClient';
 
 export class PedidoController {
+
+  async listarPedidosPorUnidade(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { unidadeId } = req.params;
+
+      const pedidos = await prisma.pedido.findMany({
+        where: {
+          unidadeId: BigInt(String(unidadeId))
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          usuario: {
+            select: {
+              nome: true,
+              email: true
+            }
+          },
+          itens: {
+            include: {
+              produto: true
+            }
+          }
+        }
+      });
+
+      return res.status(200).json(pedidos);
+    } catch (error) {
+      next(error);
+    }
+  }
 
   async criarPedido(req: Request, res: Response, next: NextFunction) {
     try {

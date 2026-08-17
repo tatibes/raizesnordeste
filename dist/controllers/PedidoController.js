@@ -2,7 +2,38 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PedidoController = void 0;
 const PedidoService_1 = require("../services/PedidoService");
+const prismaClient_1 = require("../database/prismaClient");
 class PedidoController {
+    async listarPedidosPorUnidade(req, res, next) {
+        try {
+            const { unidadeId } = req.params;
+            const pedidos = await prismaClient_1.prisma.pedido.findMany({
+                where: {
+                    unidadeId: BigInt(String(unidadeId))
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    usuario: {
+                        select: {
+                            nome: true,
+                            email: true
+                        }
+                    },
+                    itens: {
+                        include: {
+                            produto: true
+                        }
+                    }
+                }
+            });
+            return res.status(200).json(pedidos);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
     async criarPedido(req, res, next) {
         try {
             // Verifica se o usuário está autenticado antes de acessar propriedades

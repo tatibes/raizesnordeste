@@ -9,3 +9,5 @@ exports.pedidoRoutes = pedidoRoutes;
 const controller = new PedidoController_1.PedidoController();
 // Exige autenticação JWT
 pedidoRoutes.post('/pedidos', authMiddleware_1.authMiddleware, controller.criarPedido);
+// Listagem de pedidos de uma unidade específica (para painel)
+pedidoRoutes.get('/unidades/:unidadeId/pedidos', controller.listarPedidosPorUnidade);
