@@ -30,7 +30,7 @@
 
     header {
       text-align: center;
-      margin-bottom: 50px;
+      margin-bottom: 30px;
       padding: 40px;
       background: linear-gradient(135deg, #c0392b, #d35400);
       color: white;
@@ -70,6 +70,38 @@
       font-size: 1.25rem;
       font-weight: 300;
       opacity: 0.9;
+    }
+
+    .env-selector {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .env-info {
+      font-size: 1.05rem;
+    }
+
+    .env-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .env-btn {
+      padding: 8px 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
     }
 
     .grid-links {
@@ -171,6 +203,18 @@
       <p>Portal Unificado de Sistemas & Gestão Regional</p>
     </header>
 
+    <!-- Seletor de Ambiente da API (Localhost vs Produção) -->
+    <div class="env-selector">
+      <div class="env-info">
+        <strong>🌐 Conexão do Banco/API:</strong> 
+        <span id="currentEnvText" style="font-weight: bold;">...</span>
+      </div>
+      <div class="env-btns">
+        <button onclick="setEnvironment('localhost')" class="env-btn" id="btnLocal">Usar Localhost (5432)</button>
+        <button onclick="setEnvironment('production')" class="env-btn" id="btnProd">Usar Produção (Servidor)</button>
+      </div>
+    </div>
+
     <main class="grid-links">
       <!-- Cardápio Digital -->
       <a href="cardapio.html" class="portal-card card-menu">
@@ -218,5 +262,59 @@
     Desenvolvido com carinho para o <strong>Raízes do Nordeste</strong> &copy; 2026. Todos os direitos reservados.
   </footer>
 
+  <script>
+    function updateEnvUI() {
+      const apiUrl = localStorage.getItem('API_URL');
+      const text = document.getElementById('currentEnvText');
+      const btnLocal = document.getElementById('btnLocal');
+      const btnProd = document.getElementById('btnProd');
+
+      if (apiUrl === 'http://localhost:5432') {
+        text.textContent = 'Localhost (http://localhost:5432)';
+        text.style.color = '#c0392b';
+        
+        btnLocal.style.backgroundColor = '#c0392b';
+        btnLocal.style.color = 'white';
+        btnLocal.style.borderColor = '#c0392b';
+        
+        btnProd.style.backgroundColor = 'white';
+        btnProd.style.color = '#333';
+        btnProd.style.borderColor = '#ccc';
+      } else {
+        const displayUrl = apiUrl || 'Hospedagem Relativa (Mesmo Servidor)';
+        text.textContent = `Produção (${displayUrl})`;
+        text.style.color = '#27ae60';
+        
+        btnProd.style.backgroundColor = '#27ae60';
+        btnProd.style.color = 'white';
+        btnProd.style.borderColor = '#27ae60';
+        
+        btnLocal.style.backgroundColor = 'white';
+        btnLocal.style.color = '#333';
+        btnLocal.style.borderColor = '#ccc';
+      }
+    }
+
+    function setEnvironment(env) {
+      if (env === 'localhost') {
+        localStorage.setItem('API_URL', 'http://localhost:5432');
+      } else {
+        const currentUrl = localStorage.getItem('API_URL') === 'http://localhost:5432' ? '' : localStorage.getItem('API_URL') || '';
+        const customUrl = prompt('Digite a URL da API de Produção (deixe em branco para usar o mesmo servidor de hospedagem):', currentUrl);
+        if (customUrl !== null) {
+          localStorage.setItem('API_URL', customUrl.trim());
+        }
+      }
+      updateEnvUI();
+    }
+
+    // Inicialização da porta
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('API_URL') === null) {
+        localStorage.setItem('API_URL', 'http://localhost:5432');
+      }
+      updateEnvUI();
+    });
+  </script>
 </body>
 </html>

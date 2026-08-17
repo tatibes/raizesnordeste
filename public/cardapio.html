@@ -182,8 +182,11 @@
   </div>
 
   <script>
-    // URL base da sua API Node/Express
-    const API_URL = ''; // Usar caminhos relativos
+    // Obter URL base do localStorage com fallback para localhost:5432 se não estiver definido
+    if (localStorage.getItem('API_URL') === null) {
+      localStorage.setItem('API_URL', 'http://localhost:5432');
+    }
+    const API_URL = localStorage.getItem('API_URL');
 
     async function carregarUnidades() {
       const select = document.getElementById('selectUnidade');
