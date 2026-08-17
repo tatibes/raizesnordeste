@@ -159,16 +159,15 @@
     <div class="filtros">
       <div class="filtro-item">
         <label for="selectPlataforma"><strong>Tipo de Plataforma:</strong></label>
-        <select id="selectPlataforma" onchange="selecionarPlataforma()">
-          <option value="">Selecione a plataforma...</option>
-          <option value="APP">Aplicativo (APP)</option>
+        <select id="selectPlataforma">
           <option value="WEB">Web Browser (WEB)</option>
+          <option value="APP">Aplicativo (APP)</option>
           <option value="BALCAO">Balcão / Loja (BALCÃO)</option>
           <option value="TOTEM">Totem de Autoatendimento (TOTEM)</option>
         </select>
       </div>
 
-      <div class="filtro-item" id="unidadeContainer" style="display: none;">
+      <div class="filtro-item">
         <label for="selectUnidade"><strong>Selecione a Unidade:</strong></label>
         <select id="selectUnidade" onchange="carregarCardapio()">
           <option value="">A carregar unidades...</option>
@@ -177,7 +176,7 @@
     </div>
 
     <main id="gridProdutos" class="grid-produtos">
-      <div class="loading">Por favor, selecione uma plataforma para iniciar o atendimento.</div>
+      <div class="loading">A carregar o cardápio...</div>
     </main>
   </div>
 
@@ -203,43 +202,36 @@
         const unidades = await response.json();
 
         select.innerHTML = '<option value="">Selecione uma unidade...</option>';
-        unidades.forEach(unidade => {
+        unidades.forEach((unidade, index) => {
           const option = document.createElement('option');
           option.value = unidade.id;
           option.textContent = unidade.nome;
+          if (index === 0) {
+            option.selected = true; // Seleciona a primeira por padrão
+          }
           select.appendChild(option);
         });
+
+        if (unidades.length > 0) {
+          carregarCardapio();
+        } else {
+          document.getElementById('gridProdutos').innerHTML = '<div class="loading">Nenhuma unidade disponível no banco.</div>';
+        }
       } catch (error) {
         console.error('Erro ao buscar unidades:', error);
         select.innerHTML = '<option value="">Erro ao carregar unidades</option>';
-      }
-    }
-
-    function selecionarPlataforma() {
-      const plataforma = document.getElementById('selectPlataforma').value;
-      const unidadeContainer = document.getElementById('unidadeContainer');
-      const grid = document.getElementById('gridProdutos');
-      
-      if (plataforma) {
-        unidadeContainer.style.display = 'block';
-        grid.innerHTML = '<div class="loading">Agora, selecione uma unidade para exibir os sabores regionais.</div>';
-        carregarUnidades();
-      } else {
-        unidadeContainer.style.display = 'none';
-        document.getElementById('selectUnidade').value = '';
-        grid.innerHTML = '<div class="loading">Por favor, selecione uma plataforma para iniciar o atendimento.</div>';
+        document.getElementById('gridProdutos').innerHTML = `
+          <div class="erro">
+            ⚠️ Erro ao carregar as unidades do banco.<br>
+            <small>Verifique se o backend está ativo e se o banco de dados contém unidades.</small>
+          </div>
+        `;
       }
     }
 
     async function carregarCardapio() {
       const grid = document.getElementById('gridProdutos');
-      const plataforma = document.getElementById('selectPlataforma').value;
       const unidadeId = document.getElementById('selectUnidade').value;
-
-      if (!plataforma) {
-        grid.innerHTML = '<div class="loading">Por favor, selecione uma plataforma para iniciar o atendimento.</div>';
-        return;
-      }
 
       if (!unidadeId) {
         grid.innerHTML = '<div class="loading">Por favor, selecione uma unidade para ver o cardápio.</div>';
@@ -300,6 +292,9 @@
         `;
       }
     }
+
+    // Carrega as unidades automaticamente ao iniciar
+    window.addEventListener('DOMContentLoaded', carregarUnidades);
   </script>
 </body>
 </html>
