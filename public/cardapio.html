@@ -144,7 +144,7 @@
 
   <script>
     // URL base da sua API Node/Express
-    const API_URL = 'http://localhost:3000';
+    const API_URL = 'http://localhost:5432';
 
     async function carregarCardapio() {
       const grid = document.getElementById('gridProdutos');
@@ -199,7 +199,7 @@
         grid.innerHTML = `
           <div class="erro">
             ⚠️ Erro ao carregar o cardápio.<br>
-            <small>Verifique se o backend está ativo em <code>http://localhost:3000</code> e com o CORS habilitado.</small>
+            <small>Verifique se o backend está ativo em <code>http://localhost:5432</code> e com o CORS habilitado.</small>
           </div>
         `;
       }
