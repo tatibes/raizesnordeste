@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raízes do Nordeste - Portal de Sistemas</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f9f6f0;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      flex-grow: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      padding: 40px;
+      background: linear-gradient(135deg, #c0392b, #d35400);
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: "🌵";
+      font-size: 8rem;
+      position: absolute;
+      right: -20px;
+      bottom: -30px;
+      opacity: 0.15;
+      transform: rotate(15deg);
+    }
+
+    header::after {
+      content: "🍲";
+      font-size: 8rem;
+      position: absolute;
+      left: -20px;
+      top: -30px;
+      opacity: 0.15;
+      transform: rotate(-15deg);
+    }
+
+    header h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    header p {
+      font-size: 1.25rem;
+      font-weight: 300;
+      opacity: 0.9;
+    }
+
+    .grid-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .portal-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s, box-shadow 0.3s;
+      border-top: 5px solid #c0392b;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .portal-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      color: #c0392b;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+
+    .card-desc {
+      font-size: 0.95rem;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 25px;
+    }
+
+    .card-btn {
+      align-self: flex-start;
+      padding: 10px 20px;
+      background-color: #c0392b;
+      color: white;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      transition: background-color 0.2s;
+    }
+
+    .portal-card:hover .card-btn {
+      background-color: #d35400;
+    }
+
+    /* Cores variadas por borda */
+    .card-menu { border-top-color: #27ae60; }
+    .card-menu .card-title { color: #27ae60; }
+    .card-menu .card-btn { background-color: #27ae60; }
+
+    .card-adm { border-top-color: #e67e22; }
+    .card-adm .card-title { color: #e67e22; }
+    .card-adm .card-btn { background-color: #e67e22; }
+
+    .card-painel { border-top-color: #2980b9; }
+    .card-painel .card-title { color: #2980b9; }
+    .card-painel .card-btn { background-color: #2980b9; }
+
+    .card-docs { border-top-color: #8e44ad; }
+    .card-docs .card-title { color: #8e44ad; }
+    .card-docs .card-btn { background-color: #8e44ad; }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      background-color: #fff;
+      border-top: 1px solid #eee;
+      color: #777;
+      font-size: 0.9rem;
+    }
+
+    footer strong {
+      color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🌵 Raízes do Nordeste</h1>
+      <p>Portal Unificado de Sistemas & Gestão Regional</p>
+    </header>
+
+    <main class="grid-links">
+      <!-- Cardápio Digital -->
+      <a href="cardapio.html" class="portal-card card-menu">
+        <div>
+          <div class="card-icon">🍲</div>
+          <h2 class="card-title">Cardápio Digital</h2>
+          <p class="card-desc">Visualize o menu de pratos típicos nordestinos, com filtros por unidade de atendimento e preços integrados ao banco de dados.</p>
+        </div>
+        <span class="card-btn">Acessar Cardápio</span>
+      </a>
+
+      <!-- Cadastro de Produtos -->
+      <a href="cadastro-produto.html" class="portal-card card-adm">
+        <div>
+          <div class="card-icon">✏️</div>
+          <h2 class="card-title">Cadastro de Itens</h2>
+          <p class="card-desc">Painel administrativo para cadastrar novos pratos regionais, definir preços, categorizar e inicializar o estoque de cada unidade.</p>
+        </div>
+        <span class="card-btn">Cadastrar Item</span>
+      </a>
+
+      <!-- Painel de Pedidos -->
+      <a href="painel-pedidos.html" class="portal-card card-painel">
+        <div>
+          <div class="card-icon">📊</div>
+          <h2 class="card-title">Monitor de Pedidos</h2>
+          <p class="card-desc">Painel de monitoramento em tempo real dos pedidos divididos por canais de venda (App, Totem, Balcão e Web) de cada unidade específica.</p>
+        </div>
+        <span class="card-btn">Ver Painel</span>
+      </a>
+
+      <!-- Documentação Swagger -->
+      <a href="/api-docs" class="portal-card card-docs">
+        <div>
+          <div class="card-icon">📄</div>
+          <h2 class="card-title">Documentação API</h2>
+          <p class="card-desc">Documentação interativa com o Swagger UI contendo todas as rotas e esquemas de dados da nossa API Node.js/Express.</p>
+        </div>
+        <span class="card-btn">Ver Swagger</span>
+      </a>
+    </main>
+  </div>
+
+  <footer>
+    Desenvolvido com carinho para o <strong>Raízes do Nordeste</strong> &copy; 2026. Todos os direitos reservados.
+  </footer>
+
+</body>
+</html>
