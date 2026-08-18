@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import type { } from 'node';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting full database seeding...');
 
-  // 1. Limpar banco na ordem correta para respeitar FKs
+  //Limpar banco na ordem correta para respeitar FKs
   console.log('🧹 Clearing old data...');
   await prisma.logAuditoria.deleteMany({});
   await prisma.pagamento.deleteMany({});
@@ -17,7 +18,7 @@ async function main() {
   await prisma.fidelidade.deleteMany({});
   await prisma.usuario.deleteMany({});
 
-  console.log('🏢 Seeding Unidades (Units)...');
+  console.log('Preenchendo (unidades)');
 
   const recife = await prisma.unidade.create({
     data: {
@@ -51,9 +52,9 @@ async function main() {
     },
   });
 
-  console.log('✅ Unidades created!');
+  console.log('Unidades criadas!');
 
-  console.log('🍛 Seeding Produtos and Estoque for Recife...');
+  console.log('Preenchendo unidades com produtos e estoque Recife');
   const produtosRecife = [
     {
       nome: 'Baião de Dois Clássico',
@@ -105,7 +106,7 @@ async function main() {
     });
   }
 
-  console.log('🍛 Seeding Produtos and Estoque for Salvador...');
+   console.log('Preenchendo unidades com produtos e estoque Salvador');
   const produtosSalvador = [
     {
       nome: 'Moqueca Baiana de Peixe',
@@ -157,7 +158,7 @@ async function main() {
     });
   }
 
-  console.log('🍛 Seeding Produtos and Estoque for Fortaleza...');
+  console.log('Preenchendo unidades com produtos e estoque Fortaleza');
   const produtosFortaleza = [
     {
       nome: 'Peixada Cearense',
@@ -208,8 +209,7 @@ async function main() {
       },
     });
   }
-
-  console.log('🍛 Seeding Produtos and Estoque for Natal...');
+ console.log('Preenchendo unidades com produtos e estoque Natal');
   const produtosNatal = [
     {
       nome: 'Ginga com Tapioca',
@@ -261,10 +261,10 @@ async function main() {
     });
   }
 
-  console.log('👤 Seeding Test Users...');
+  console.log('Preenchendo com usuarios de teste');
   const adminUser = await prisma.usuario.create({
     data: {
-      nome: 'Administrador Raízes',
+      nome: 'Administrador do Sistema',
       email: 'admin@raizesnordeste.com',
       senha: 'adminsecret123',
       perfil: 'ADMIN',
@@ -282,15 +282,14 @@ async function main() {
     },
   });
 
-  console.log(`✅ Seeding complete! Seeded:`);
-  console.log(`- 4 Unidades`);
-  console.log(`- 16 Produtos regionais cadastrados com seus estoques individualizados.`);
-  console.log(`- 2 Usuários de teste (ADMIN: ${adminUser.email}, CLIENTE: ${clienteUser.email})`);
+  console.log(`Base de dados preenchida com sucesso!`);
+  console.log(`4 Unidades`);
+  console.log(`16 Produtos regionais cadastrados com seus estoques individualizados.`);
+  console.log(`2 Usuários de teste (ADMIN: ${adminUser.email}, CLIENTE: ${clienteUser.email})`);
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Error during seeding:', e);
+  .catch((e) => {console.error('Erros durante o preenchimento da base de dados:', e);
     process.exit(1);
   })
   .finally(async () => {

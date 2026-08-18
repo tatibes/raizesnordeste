@@ -1,3 +1,6 @@
+// Este arquivo gerado pelo prisma define o modelo de dados e as configurações do banco de dados para a aplicação. Ele inclui definições de modelos, enums e relacionamentos entre tabelas.
+// foi gerado a partir da criação do banco no postgres, e pode ser usado para gerar o client do prisma e manter a consistência do banco de dados com o código da aplicação.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -57,8 +60,6 @@ model Unidade {
   // Relacionamentos existentes
   estoque  EstoqueUnidade[]
   pedidos  Pedido[]
-
-  // ADICIONE esta linha para o relacionamento com Produto
   produtos Produto[]
 
   @@map("unidades")
@@ -71,7 +72,7 @@ model Produto {
   categoria   String?  @db.VarChar(50)
   precoBase   Decimal  @map("preco_base") @db.Decimal(10, 2)
 
-  // adicionei esta coluna para referencia o relacionamento com Unidade e poroduto
+  // Esta coluna faz referencia ao relacionamento com Unidade e produto
   unidadeId   BigInt   @map("unidade_id")
   unidade     Unidade  @relation(fields: [unidadeId], references: [id])
 

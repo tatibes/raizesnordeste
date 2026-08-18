@@ -54,7 +54,7 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
 
   await t.test('GET /unidades/:unidadeId/produtos - Lista de produtos', async () => {
     const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/produtos`);
-    assert.strictEqual(response.status, 200, 'Returno 200');
+    assert.strictEqual(response.status, 200, 'Retorno 200');
     const body = await response.json() as any[];
     assert.ok(Array.isArray(body), 'Precisa ser um array');
     assert.ok(body.length > 0, 'Não pode salvar sem produtos');
@@ -72,7 +72,7 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
         }
       }
     });
-    assert.ok(estoqueAntes, 'Estoque should exist');
+    assert.ok(estoqueAntes, 'Estoque precisa existir antes do pedido');
     const qtdAntes = estoqueAntes.quantidade;
 
     // Fazer pedido de 5 unidades
@@ -92,11 +92,11 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
       })
     });
 
-    assert.strictEqual(response.status, 201, 'Order creation should return 201 Created');
+    assert.strictEqual(response.status, 201, 'ORdem criada com sucesso deve retornar 201 ');
     const body = await response.json() as any;
-    assert.ok(body.pedidoId, 'Should return created pedido ID');
-    assert.strictEqual(body.status, 'AGUARDANDO_PAGAMENTO', 'Should have status AGUARDANDO_PAGAMENTO');
-    assert.strictEqual(body.total, 35.50 * 5, 'Total price should be correct');
+    assert.ok(body.pedidoId, 'Retornar ID do pedido');
+    assert.strictEqual(body.status, 'AGUARDANDO_PAGAMENTO', 'Status esperadod AGUARDANDO_PAGAMENTO');
+    assert.strictEqual(body.total, 35.50 * 5, 'Preço total calculado corretamente');
 
     // Verificar estoque depois do pedido
     const estoqueDepois = await prisma.estoqueUnidade.findUnique({
@@ -107,7 +107,7 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
         }
       }
     });
-    assert.strictEqual(estoqueDepois!.quantidade, qtdAntes - 5, 'Stock should be decreased by 5');
+    assert.strictEqual(estoqueDepois!.quantidade, qtdAntes - 5, 'Diminuiu o estoque em 5');
 
     // Verificar auditoria
     const auditLog = await prisma.logAuditoria.findFirst({
@@ -117,13 +117,13 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
       },
       orderBy: { timestamp: 'desc' }
     });
-    assert.ok(auditLog, 'Audit log should be created');
+    assert.ok(auditLog, 'Log criado para ação de criar pedido');
     const detalhes = auditLog.detalhes as any;
-    assert.strictEqual(detalhes.canal, 'APP', 'Audit details should capture order canal');
-    assert.strictEqual(detalhes.recurso, `/pedidos/${body.pedidoId}`, 'Audit details should capture resource path');
+    assert.strictEqual(detalhes.canal, 'APP', 'Log deve capturar o canal do pedido');
+    assert.strictEqual(detalhes.recurso, `/pedidos/${body.pedidoId}`, 'Log deve capturar o caminho do recurso');
   });
 
-  await t.test('POST /pedidos - Fail on invalid canal', async () => {
+  await t.test('POST /pedidos - Falha pataforma invalida', async () => {
     const response = await fetch('http://localhost:3001/pedidos', {
       method: 'POST',
       headers: {
@@ -140,12 +140,12 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
       })
     });
 
-    assert.strictEqual(response.status, 400, 'Should return 400 Bad Request');
+    assert.strictEqual(response.status, 400, 'Deve retornar 400 Bad Request');
     const body = await response.json() as any;
-    assert.strictEqual(body.error, 'CANAL_INVALIDO', 'Error code should be CANAL_INVALIDO');
+    assert.strictEqual(body.error, 'CANAL_INVALIDO', 'Código de erro deve ser CANAL_INVALIDO');
   });
 
-  await t.test('POST /pedidos - Fail on insufficient stock', async () => {
+  await t.test('POST /pedidos - Falha no estoque insuficiente', async () => {
     const response = await fetch('http://localhost:3001/pedidos', {
       method: 'POST',
       headers: {
@@ -162,13 +162,13 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
       })
     });
 
-    assert.strictEqual(response.status, 422, 'Should return 422 Unprocessable Entity');
+    assert.strictEqual(response.status, 422, 'Deve retornar 422 Unprocessable Entity');
     const body = await response.json() as any;
-    assert.strictEqual(body.error, 'ESTOQUE_INSUFICIENTE', 'Error code should be ESTOQUE_INSUFICIENTE');
+    assert.strictEqual(body.error, 'ESTOQUE_INSUFICIENTE', 'Código de erro deve ser ESTOQUE_INSUFICIENTE');
   });
 
   // Finalizar conexões do prisma e encerrar o processo de teste limpo
   await prisma.$disconnect();
-  console.log('🎉 All tests completed successfully!');
+  console.log('Todas os testes concluídos com sucesso!');
   process.exit(0);
 });
