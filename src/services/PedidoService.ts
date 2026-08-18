@@ -15,13 +15,13 @@ interface CriarPedidoDTO {
 
 export class PedidoService {
   async processarPedido(data: CriarPedidoDTO) {
-    // 1. Executa em transação para garantir consistência
+    //Executa em transação para garantir consistência
     return await prisma.$transaction(async (tx) => {
       let valorTotal = 0;
       const itensFormatados = [];
 
       for (const item of data.itens) {
-        // Valida Estoque na Unidade Específica
+        //Valida Estoque na Unidade Específica
         const estoque = await tx.estoqueUnidade.findUnique({
           where: {
             unidadeId_produtoId: {
@@ -56,7 +56,7 @@ export class PedidoService {
         });
       }
 
-      // 2. Cria o Pedido com o Canal Obrigatório
+      //Cria o Pedido com o Canal Obrigatório
       const pedido = await tx.pedido.create({
         data: {
           usuarioId: data.usuarioId,
@@ -73,7 +73,7 @@ export class PedidoService {
         include: { itens: true }
       });
 
-      // 3. Regista Log de Auditoria (Requisito RNF)
+      //Regista Log de Auditoria (Requisito RNF)
       await tx.logAuditoria.create({
         data: {
           usuarioId: data.usuarioId,

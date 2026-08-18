@@ -97,7 +97,7 @@ router.post('/produtos', async (req: Request, res: Response) => {
     }
 
     const produto = await prisma.$transaction(async (tx) => {
-      // 1. Criar o produto
+      //Criar o produto
       const novoProduto = await tx.produto.create({
         data: {
           nome,
@@ -108,7 +108,7 @@ router.post('/produtos', async (req: Request, res: Response) => {
         }
       });
 
-      // 2. Criar ou inicializar o estoque na unidade
+      //Criar ou inicializar o estoque na unidade
       await tx.estoqueUnidade.create({
         data: {
           unidadeId: BigInt(unidadeId),

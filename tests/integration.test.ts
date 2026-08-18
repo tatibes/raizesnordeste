@@ -21,48 +21,48 @@ function generateTestToken(payload: any, secret: string): string {
   return `${headerB64}.${payloadB64}.${signature}`;
 }
 
-test('Integration Test Suite - Raízes do Nordeste API', async (t) => {
-  // 1. Iniciar o servidor em background importando o arquivo do servidor
-  console.log('🚀 Starting test server on port 3001...');
+test('Teste de integração - Raízes do Nordeste API', async (t) => {
+  //Iniciar o servidor em iportando o arquivo do servidor
+  console.log('Iniciando teste na porta 3001');
   require('../src/server');
 
-  // Aguarda um pequeno delay para garantir que o Express está pronto
+  // Aguarda um tempo para garantir que o Express está pronto
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   let ids: { unidadeId: number; produtoId: number; usuarioId: number };
   let token: string;
 
-  await t.test('Database Seeding', async () => {
+  await t.test('Preenchendo base de dados', async () => {
     ids = await seedTestData();
-    assert.ok(ids.unidadeId, 'Unidade ID should be created');
-    assert.ok(ids.produtoId, 'Produto ID should be created');
-    assert.ok(ids.usuarioId, 'Usuario ID should be created');
+    assert.ok(ids.unidadeId, 'Unidade ID criado');
+    assert.ok(ids.produtoId, 'Produto ID criado');
+    assert.ok(ids.usuarioId, 'Usuario ID criado');
 
     // Gerar token de autenticação válido
     token = generateTestToken(
-      { id: ids.usuarioId, perfil: 'CLIENTE', email: 'test@example.com' },
+      { id: ids.usuarioId, perfil: 'CLIENTE', email: 'teste@example.com' },
       process.env.JWT_SECRET!
     );
   });
 
-  await t.test('GET /health - Health Check', async () => {
+  await t.test('GET /health - Checagem Health', async () => {
     const response = await fetch('http://localhost:3001/health');
-    assert.strictEqual(response.status, 200, 'Health check should return 200');
+    assert.strictEqual(response.status, 200, 'Checagem health deve retornar 200 (ok)');
     const body = await response.json() as any;
-    assert.strictEqual(body.status, 'OK', 'Status should be OK');
+    assert.strictEqual(body.status, 'OK', 'Status ok');
   });
 
-  await t.test('GET /unidades/:unidadeId/produtos - List Products', async () => {
+  await t.test('GET /unidades/:unidadeId/produtos - Lista de produtos', async () => {
     const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/produtos`);
-    assert.strictEqual(response.status, 200, 'Should return 200');
+    assert.strictEqual(response.status, 200, 'Returno 200');
     const body = await response.json() as any[];
-    assert.ok(Array.isArray(body), 'Response should be an array');
-    assert.ok(body.length > 0, 'Products array should not be empty');
+    assert.ok(Array.isArray(body), 'Precisa ser um array');
+    assert.ok(body.length > 0, 'Não pode salvar sem produtos');
     const firstProduct = body[0];
-    assert.strictEqual(Number(firstProduct.unidadeId), ids.unidadeId, 'Product should belong to correct unit');
+    assert.strictEqual(Number(firstProduct.unidadeId), ids.unidadeId, 'Produto atribuido a unidade correta');
   });
 
-  await t.test('POST /pedidos - Create Order successfully & decrease stock', async () => {
+  await t.test('POST /pedidos - Ordem criada com sucesso', async () => {
     // Verificar estoque antes do pedido
     const estoqueAntes = await prisma.estoqueUnidade.findUnique({
       where: {

@@ -1,4 +1,4 @@
-import { TokenPayload } from '../../middlewares/authMiddleware'; // ajuste a importação se necessário
+import { TokenPayload } from '../../middlewares/authMiddleware';
 
 declare global {
   namespace Express {
