@@ -207,20 +207,9 @@
       <p>Portal Unificado de Sistemas & Gestão Regional</p>
     </header>
 
-    <!-- Seletor de Ambiente da API (Localhost vs Produção) -->
-    <div class="env-selector">
-      <div class="env-info">
-        <strong>🌐 Conexão do Banco/API:</strong> 
-        <span id="currentEnvText" style="font-weight: bold;">...</span>
-      </div>
-      <div class="env-btns">
-        <button onclick="setEnvironment('localhost')" class="env-btn" id="btnLocal">Usar Detectado / Localhost</button>
-        <button onclick="setEnvironment('production')" class="env-btn" id="btnProd">Usar Produção (Customizado)</button>
-      </div>
-    </div>
 
     <main class="grid-links">
-      <!-- Cardápio Digital -->
+
       <a href="cardapio.html" class="portal-card card-menu">
         <div>
           <div class="card-icon">🍲</div>
@@ -230,7 +219,6 @@
         <span class="card-btn">Acessar Cardápio</span>
       </a>
 
-      <!-- Fazer Pedidos (Terminal de Vendas) -->
       <a href="fazer-pedido.html" class="portal-card card-fazer-pedido">
         <div>
           <div class="card-icon">🛒</div>
@@ -265,7 +253,7 @@
         <div>
           <div class="card-icon">📄</div>
           <h2 class="card-title">Documentação API</h2>
-          <p class="card-desc">Documentação interativa com o Swagger UI contendo todas as rotas e esquemas de dados da nossa API Node.js/Express.</p>
+          <p class="card-desc">Documentação interativa com o Swagger UI contendo todas as rotas e esquemas de dados da API Node.js/Express.</p>
         </div>
         <span class="card-btn">Ver Swagger</span>
       </a>
@@ -273,16 +261,14 @@
   </div>
 
   <footer>
-    Desenvolvido com carinho para o <strong>Raízes do Nordeste</strong> &copy; 2026. Todos os direitos reservados.
+    Desenvolvido para o <strong>Raízes do Nordeste</strong> &copy; 2026.
   </footer>
 
   <script>
     function getDefaultAPIUrl() {
-      // Se for carregado via HTTP/HTTPS, usar a própria origem (evita hardcode de porta errado!)
       if (window.location.protocol.startsWith('http')) {
         return window.location.origin;
       }
-      // Se for aberto localmente como arquivo, usar fallback localhost:3000
       return 'http://localhost:3000';
     }
 
@@ -323,7 +309,7 @@
         localStorage.setItem('API_URL', getDefaultAPIUrl());
       } else {
         const currentUrl = localStorage.getItem('API_URL') === getDefaultAPIUrl() ? '' : localStorage.getItem('API_URL') || '';
-        const customUrl = prompt('Digite a URL da API de Produção (ex: https://raizesnordeste-api.onrender.com):', currentUrl);
+        const customUrl = 'https://raizes-nordeste-api-h8qo.onrender.com/';
         if (customUrl !== null && customUrl.trim() !== '') {
           localStorage.setItem('API_URL', customUrl.trim());
         }
