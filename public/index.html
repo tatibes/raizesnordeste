@@ -308,8 +308,7 @@
       if (env === 'localhost') {
         localStorage.setItem('API_URL', getDefaultAPIUrl());
       } else {
-        const currentUrl = localStorage.getItem('API_URL') === getDefaultAPIUrl() ? '' : localStorage.getItem('API_URL') || '';
-        const customUrl = 'https://raizes-nordeste-api-h8qo.onrender.com/';
+        const customUrl = 'https://raizes-nordeste-api-h8qo.onrender.com';
         if (customUrl !== null && customUrl.trim() !== '') {
           localStorage.setItem('API_URL', customUrl.trim());
         }
@@ -319,8 +318,11 @@
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('API_URL') === null) {
+      let stored = localStorage.getItem('API_URL');
+      if (stored === null || stored.includes('5432')) {
         localStorage.setItem('API_URL', getDefaultAPIUrl());
+      } else if (stored.endsWith('/')) {
+        localStorage.setItem('API_URL', stored.slice(0, -1));
       }
       updateEnvUI();
     });
