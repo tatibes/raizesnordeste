@@ -27,5 +27,5 @@ response:
     content: |-
       {
         "error": "CANAL_INVALIDO",
-        "message": "O campo canalPedido é obrigatório e deve ser APP, TOTEM, BALCAO ou WEB."
+        "message": "O campo canalPedido é obrigatório e deve ser APP, TOTEM, BALCAO, WEB ou PICKUP."
       }

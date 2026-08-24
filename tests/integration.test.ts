@@ -167,6 +167,54 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
     assert.strictEqual(body.error, 'ESTOQUE_INSUFICIENTE', 'Código de erro deve ser ESTOQUE_INSUFICIENTE');
   });
 
+  await t.test('POST /pedidos - Ordem criada com canal PICKUP', async () => {
+    const response = await fetch('http://localhost:3001/pedidos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        unidadeId: ids.unidadeId,
+        canalPedido: 'PICKUP',
+        formaPagamento: 'PIX',
+        itens: [
+          { produtoId: ids.produtoId, quantidade: 1 }
+        ]
+      })
+    });
+
+    assert.strictEqual(response.status, 201, 'Ordem criada com canal PICKUP deve retornar 201');
+    const body = await response.json() as any;
+    assert.strictEqual(body.canalPedido, 'PICKUP', 'O canal do pedido retornado deve ser PICKUP');
+  });
+
+  await t.test('GET /unidades/:unidadeId/pedidos - Listar todos os pedidos sem filtro', async () => {
+    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos`);
+    assert.strictEqual(response.status, 200, 'Listar pedidos sem filtro deve retornar 200');
+    const body = await response.json() as any[];
+    assert.ok(Array.isArray(body), 'Deve retornar um array de pedidos');
+    assert.ok(body.length >= 2, 'Deve conter pelo menos os dois pedidos criados');
+  });
+
+  await t.test('GET /unidades/:unidadeId/pedidos - Listar filtrando por canalPedido=PICKUP', async () => {
+    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos?canalPedido=PICKUP`);
+    assert.strictEqual(response.status, 200, 'Listar pedidos com filtro PICKUP deve retornar 200');
+    const body = await response.json() as any[];
+    assert.ok(Array.isArray(body), 'Deve retornar um array de pedidos');
+    assert.ok(body.length > 0, 'Deve retornar pelo menos o pedido com canal PICKUP');
+    body.forEach(pedido => {
+      assert.strictEqual(pedido.canalPedido, 'PICKUP', 'Todo pedido retornado com esse filtro deve ser PICKUP');
+    });
+  });
+
+  await t.test('GET /unidades/:unidadeId/pedidos - Falha ao filtrar com canal inválido', async () => {
+    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos?canalPedido=CHURRASCARIA`);
+    assert.strictEqual(response.status, 400, 'Filtrar canal inválido deve retornar 400');
+    const body = await response.json() as any;
+    assert.strictEqual(body.error, 'CANAL_INVALIDO', 'Código do erro deve ser CANAL_INVALIDO');
+  });
+
   // Finalizar conexões do prisma e encerrar o processo de teste limpo
   await prisma.$disconnect();
   console.log('Todas os testes concluídos com sucesso!');

@@ -2,7 +2,7 @@ $kind: http-request
 name: Criar Pedido
 method: POST
 url: '{{baseUrl}}/pedidos'
-description: 'Registra um pedido multicanal validando estoque local. Requer autenticação JWT Bearer. canalPedido deve ser: APP, TOTEM, BALCAO ou WEB.'
+description: 'Registra um pedido multicanal validando estoque local. Requer autenticação JWT Bearer. canalPedido deve ser: APP, TOTEM, BALCAO, WEB ou PICKUP.'
 auth:
   type: bearer
   credentials:
@@ -45,7 +45,7 @@ scripts:
       pm.test("Pedido tem canalPedido válido", () => {
         const json = pm.response.json();
         pm.expect(json).to.have.property("canalPedido");
-        pm.expect(["APP", "TOTEM", "BALCAO", "WEB"]).to.include(json.canalPedido);
+        pm.expect(["APP", "TOTEM", "BALCAO", "WEB", "PICKUP"]).to.include(json.canalPedido);
       });
 
       pm.test("Pedido tem status inicial correto", () => {

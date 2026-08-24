@@ -256,6 +256,18 @@
         </select>
       </div>
 
+      <div class="select-unidade-container">
+        <label for="selectCanal"><strong>Filtrar por Canal:</strong></label>
+        <select id="selectCanal" onchange="carregarPedidos()">
+          <option value="">Todos os Canais</option>
+          <option value="APP">Aplicativo (APP)</option>
+          <option value="WEB">Web Browser (WEB)</option>
+          <option value="BALCAO">Balcão (BALCÃO)</option>
+          <option value="TOTEM">Totem (TOTEM)</option>
+          <option value="PICKUP">Retirada (PICKUP)</option>
+        </select>
+      </div>
+
       <button onclick="carregarPedidos()" class="btn-refresh">
         🔄 Atualizar Painel
       </button>
@@ -316,6 +328,7 @@
     async function carregarPedidos() {
       const painel = document.getElementById('painelPedidos');
       const unidadeId = document.getElementById('selectUnidade').value;
+      const canalPedido = document.getElementById('selectCanal')?.value;
 
       if (!unidadeId) {
         painel.innerHTML = '<div class="no-orders">Por favor, selecione uma unidade para ver os pedidos.</div>';
@@ -323,7 +336,11 @@
       }
 
       try {
-        const response = await fetch(`${API_URL}/unidades/${unidadeId}/pedidos`);
+        let url = `${API_URL}/unidades/${unidadeId}/pedidos`;
+        if (canalPedido) {
+          url += `?canalPedido=${canalPedido}`;
+        }
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Erro ao carregar pedidos.');
         const pedidos = await response.json();
 

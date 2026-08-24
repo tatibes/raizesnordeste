@@ -4,12 +4,12 @@ exports.PedidoService = void 0;
 const prismaClient_1 = require("../database/prismaClient");
 class PedidoService {
     async processarPedido(data) {
-        // 1. Executa em transação para garantir consistência
+        //Executa em transação para garantir consistência
         return await prismaClient_1.prisma.$transaction(async (tx) => {
             let valorTotal = 0;
             const itensFormatados = [];
             for (const item of data.itens) {
-                // Valida Estoque na Unidade Específica
+                //Valida Estoque na Unidade Específica
                 const estoque = await tx.estoqueUnidade.findUnique({
                     where: {
                         unidadeId_produtoId: {
@@ -39,7 +39,7 @@ class PedidoService {
                     subtotal
                 });
             }
-            // 2. Cria o Pedido com o Canal Obrigatório
+            //Cria o Pedido com o Canal Obrigatório
             const pedido = await tx.pedido.create({
                 data: {
                     usuarioId: data.usuarioId,
@@ -55,7 +55,7 @@ class PedidoService {
                 },
                 include: { itens: true }
             });
-            // 3. Regista Log de Auditoria (Requisito RNF)
+            //Regista Log de Auditoria (Requisito RNF)
             await tx.logAuditoria.create({
                 data: {
                     usuarioId: data.usuarioId,

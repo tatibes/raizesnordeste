@@ -7,10 +7,24 @@ class PedidoController {
     async listarPedidosPorUnidade(req, res, next) {
         try {
             const { unidadeId } = req.params;
+            const { canalPedido } = req.query;
+            const whereClause = {
+                unidadeId: BigInt(String(unidadeId))
+            };
+            if (canalPedido) {
+                const canalStr = String(canalPedido).toUpperCase();
+                if (!['APP', 'TOTEM', 'BALCAO', 'WEB', 'PICKUP'].includes(canalStr)) {
+                    return res.status(400).json({
+                        error: 'CANAL_INVALIDO',
+                        message: 'O campo canalPedido fornecido é inválido. Valores aceitos: APP, TOTEM, BALCAO, WEB ou PICKUP.',
+                        timestamp: new Date().toISOString(),
+                        path: req.originalUrl
+                    });
+                }
+                whereClause.canalPedido = canalStr;
+            }
             const pedidos = await prismaClient_1.prisma.pedido.findMany({
-                where: {
-                    unidadeId: BigInt(String(unidadeId))
-                },
+                where: whereClause,
                 orderBy: {
                     createdAt: 'desc'
                 },
@@ -46,10 +60,10 @@ class PedidoController {
             const usuarioId = req.user.id; // Extraído do Token JWT no authMiddleware
             const { unidadeId, canalPedido, formaPagamento, itens } = req.body;
             // Validação básica do canal obrigatório
-            if (!['APP', 'TOTEM', 'BALCAO', 'WEB'].includes(canalPedido)) {
+            if (!['APP', 'TOTEM', 'BALCAO', 'WEB', 'PICKUP'].includes(canalPedido)) {
                 return res.status(400).json({
                     error: 'CANAL_INVALIDO',
-                    message: 'O campo canalPedido é obrigatório e deve ser APP, TOTEM, BALCAO ou WEB.',
+                    message: 'O campo canalPedido é obrigatório e deve ser APP, TOTEM, BALCAO, WEB ou PICKUP.',
                     timestamp: new Date().toISOString(),
                     path: req.originalUrl
                 });

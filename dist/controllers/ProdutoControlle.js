@@ -88,7 +88,7 @@ router.post('/produtos', async (req, res) => {
             return res.status(400).json({ error: 'Campos nome, precoBase e unidadeId são obrigatórios.' });
         }
         const produto = await prismaClient_1.prisma.$transaction(async (tx) => {
-            // 1. Criar o produto
+            //Criar o produto
             const novoProduto = await tx.produto.create({
                 data: {
                     nome,
@@ -98,7 +98,7 @@ router.post('/produtos', async (req, res) => {
                     unidadeId: BigInt(unidadeId)
                 }
             });
-            // 2. Criar ou inicializar o estoque na unidade
+            //Criar ou inicializar o estoque na unidade
             await tx.estoqueUnidade.create({
                 data: {
                     unidadeId: BigInt(unidadeId),

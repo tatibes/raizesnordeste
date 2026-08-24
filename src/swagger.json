@@ -70,6 +70,39 @@
         }
       }
     },
+    "/unidades/{unidadeId}/pedidos": {
+      "get": {
+        "summary": "Listar pedidos da unidade",
+        "description": "Retorna todos os pedidos de uma unidade específica, opcionalmente filtrados por canal de pedido.",
+        "parameters": [
+          {
+            "name": "unidadeId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID numérico da unidade de preparação"
+          },
+          {
+            "name": "canalPedido",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["APP", "TOTEM", "BALCAO", "WEB", "PICKUP"]
+            },
+            "description": "Filtro opcional para listar pedidos de um canal específico"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de pedidos retornada com sucesso"
+          },
+          "400": {
+            "description": "Filtro canalPedido inválido"
+          }
+        }
+      }
+    },
     "/pedidos": {
       "post": {
         "summary": "Criar um pedido multicanal",
@@ -82,7 +115,7 @@
                 "type": "object",
                 "properties": {
                   "unidadeId": { "type": "integer", "example": 1 },
-                  "canalPedido": { "type": "string", "enum": ["APP", "TOTEM", "BALCAO", "WEB"], "example": "TOTEM" },
+                  "canalPedido": { "type": "string", "enum": ["APP", "TOTEM", "BALCAO", "WEB", "PICKUP"], "example": "TOTEM" },
                   "itens": {
                     "type": "array",
                     "items": {

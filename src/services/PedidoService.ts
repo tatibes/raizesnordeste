@@ -8,7 +8,7 @@ interface ItemRequest {
 interface CriarPedidoDTO {
   usuarioId: number;
   unidadeId: number;
-  canalPedido: 'APP' | 'TOTEM' | 'BALCAO' | 'WEB';
+  canalPedido: 'APP' | 'TOTEM' | 'BALCAO' | 'WEB' | 'PICKUP';
   formaPagamento: string;
   itens: ItemRequest[];
 }
