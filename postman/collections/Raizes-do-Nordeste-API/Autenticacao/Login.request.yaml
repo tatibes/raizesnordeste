@@ -1,0 +1,47 @@
+$kind: http-request
+name: Login
+method: POST
+url: '{{baseUrl}}/auth/login'
+description: 'Autentica o usuário e retorna um token JWT Bearer. Use o token retornado nas requisições protegidas.'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "maria@email.com",
+      "senha": "mariasecret123"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 200 - Login bem-sucedido", () => {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Resposta contém token JWT", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("token");
+        pm.expect(json.token).to.be.a("string").and.not.empty;
+      });
+
+      pm.test("Resposta contém dados do usuário", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("usuario");
+        pm.expect(json.usuario).to.have.property("email");
+        pm.expect(json.usuario).to.have.property("nome");
+        pm.expect(json.usuario).to.have.property("id");
+      });
+
+      pm.test("Tempo de resposta abaixo de 3000ms", () => {
+        pm.expect(pm.response.responseTime).to.be.below(3000);
+      });
+
+      // Salva o token automaticamente no ambiente
+      if (pm.response.code === 200) {
+        const json = pm.response.json();
+        pm.environment.set("authToken", json.token);
+        console.log("Token salvo no ambiente:", json.token.substring(0, 30) + "...");
+      }

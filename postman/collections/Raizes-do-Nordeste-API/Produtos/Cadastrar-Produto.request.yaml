@@ -1,0 +1,41 @@
+$kind: http-request
+name: Cadastrar Produto
+method: POST
+url: '{{baseUrl}}/produtos'
+description: 'Cria um novo produto e inicializa o estoque dele para a respectiva unidade. Campos obrigatórios: nome, precoBase, unidadeId.'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Baião de Dois",
+      "descricao": "Arroz, feijão fradinho, queijo coalho e carne de sol.",
+      "categoria": "Prato Principal",
+      "precoBase": 35.90,
+      "unidadeId": 38,
+      "quantidadeEstoque": 50
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 201 - Produto criado com sucesso", () => {
+        pm.response.to.have.status(201);
+      });
+
+      pm.test("Resposta contém id do produto criado", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("id");
+      });
+
+      pm.test("Produto retornado tem nome e precoBase", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("nome");
+        pm.expect(json).to.have.property("precoBase");
+      });
+
+      pm.test("Tempo de resposta abaixo de 3000ms", () => {
+        pm.expect(pm.response.responseTime).to.be.below(3000);
+      });

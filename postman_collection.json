@@ -1,0 +1,558 @@
+{
+    "info": {
+        "name": "Raízes do Nordeste - Plano de Testes (10 Cenários)",
+        "description": "Coleção oficial do Postman para validação do fluxo completo da API Raízes do Nordeste, contendo os 10 cenários mínimos obrigatórios exigidos no roteiro da UNINTER (6 positivos e 4 negativos). Inclui scripts de testes automáticos para validação de status codes, integridade de payloads e gerenciamento automático do token Bearer JWT.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "jwtToken",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "lastPedidoId",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "01. Autenticação",
+            "description": "Testes relacionados à autenticação de usuários, hash de senhas e geração do token JWT.",
+            "item": [
+                {
+                    "name": "CT01 - Login com credenciais válidas (Positivo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "pm.test('Token JWT gerado e salvo automaticamente', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('token');",
+                                    "    pm.collectionVariables.set('jwtToken', jsonData.token);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"cliente@email.com\",\n  \"senha\": \"SenhaSegura123!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Cenário de sucesso para autenticação. Recebe credenciais cadastradas e armazena o token JWT retornado na variável 'jwtToken' para uso automático nas próximas rotas protegidas."
+                    }
+                },
+                {
+                    "name": "CT02 - Login com senha incorreta (Negativo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});",
+                                    "pm.test('Erro padronizado RFC 7807', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('error');",
+                                    "    pm.expect(jsonData.error).to.equal('CREDENCIAIS_INVALIDAS');",
+                                    "    pm.expect(jsonData).to.have.property('message');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"cliente@email.com\",\n  \"senha\": \"senha_incorreta_teste\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Cenário de exceção. Tenta autenticar com senha inválida, gerando retorno HTTP 401 e a mensagem de erro padronizada conforme as diretrizes do edital."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "02. Cardápio e Estoque",
+            "description": "Testes para listar produtos por unidade franqueada e validar autorizações baseadas em Roles (RBAC).",
+            "item": [
+                {
+                    "name": "CT03 - Consulta de estoque e cardápio por unidade (Positivo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "pm.test('Retorna array de produtos ativos', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('array');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwtToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/unidades/1/produtos",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "unidades",
+                                "1",
+                                "produtos"
+                            ]
+                        },
+                        "description": "Cenário positivo. Retorna os produtos disponíveis na unidade física do Recife, com seus respectivos saldos locais de estoque isolados."
+                    }
+                },
+                {
+                    "name": "CT10 - Acesso administrativo não autorizado (Negativo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 403', function () {",
+                                    "    pm.response.to.have.status(403);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwtToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"unidadeId\": 1,\n  \"produtoId\": 1,\n  \"quantidade\": 500\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/unidades/estoque",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "unidades",
+                                "estoque"
+                            ]
+                        },
+                        "description": "Cenário de segurança / RBAC. Um cliente comum tenta alterar saldo de estoque de uma rota restrita a administradores/gerentes, recebendo HTTP 403 Forbidden."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "03. Pedidos",
+            "description": "Fluxo crítico de criação de pedidos multicanais, validação de canal obrigatório e verificação de estoque.",
+            "item": [
+                {
+                    "name": "CT04 - Criação de pedido com canal válido e estoque suficiente (Positivo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "pm.test('Pedido gerado e id armazenado', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('pedidoId');",
+                                    "    pm.expect(jsonData.status).to.equal('AGUARDANDO_PAGAMENTO');",
+                                    "    pm.collectionVariables.set('lastPedidoId', jsonData.pedidoId);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwtToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"unidadeId\": 1,\n  \"canalPedido\": \"TOTEM\",\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 2\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/pedidos",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "pedidos"
+                            ]
+                        },
+                        "description": "Cenário positivo do fluxo crítico. Cria um pedido pelo canal TOTEM, reservando saldo no estoque local da unidade."
+                    }
+                },
+                {
+                    "name": "CT05 - Pedido sem canal obrigatório (Negativo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});",
+                                    "pm.test('Mensagem de erro de canal inválido', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.error).to.equal('CANAL_INVALIDO');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwtToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"unidadeId\": 1,\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 1\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/pedidos",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "pedidos"
+                            ]
+                        },
+                        "description": "Cenário de erro de validação. O edital exige canalPedido obrigatório para controle de multicanalidade. O envio sem esse campo gera erro 400."
+                    }
+                },
+                {
+                    "name": "CT06 - Pedido com quantidade maior que estoque local (Negativo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 409', function () {",
+                                    "    pm.response.to.have.status(409);",
+                                    "});",
+                                    "pm.test('Identifica erro de estoque insuficiente', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.error).to.equal('ESTOQUE_INSUFICIENTE');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwtToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"unidadeId\": 1,\n  \"canalPedido\": \"APP\",\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 99999\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/pedidos",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "pedidos"
+                            ]
+                        },
+                        "description": "Cenário de regra de negócio (conflito). Impede a venda de produtos sem estoque físico local suficiente na unidade."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "04. Pagamento Mock",
+            "description": "Testes para simular aprovação e rejeição de transações via gateway externo.",
+            "item": [
+                {
+                    "name": "CT07 - Processamento e aprovação do pagamento mock (Positivo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "pm.test('Pedido alterado para status PAGO', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.status).to.equal('PAGO');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwtToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"pedidoId\": \"{{lastPedidoId}}\",\n  \"metodoPagamento\": \"PIX\",\n  \"simularAprovacao\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/pagamentos/mock",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "pagamentos",
+                                "mock"
+                            ]
+                        },
+                        "description": "Cenário positivo. Simula a confirmação de pagamento do gateway externo, mudando o status do pedido para 'PAGO' e autorizando o início da preparação na cozinha."
+                    }
+                },
+                {
+                    "name": "CT08 - Rejeição/Falha do pagamento mock (Negativo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 400', function () {",
+                                    "    pm.response.to.have.status(400);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwtToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"pedidoId\": \"{{lastPedidoId}}\",\n  \"metodoPagamento\": \"PIX\",\n  \"simularAprovacao\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/pagamentos/mock",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "pagamentos",
+                                "mock"
+                            ]
+                        },
+                        "description": "Cenário negativo. Simula falha do gateway externo, garantindo que a aplicação trate a rejeição financeira e reverta reservas de estoque necessárias."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "05. Fidelização e LGPD",
+            "description": "Operações do programa de pontos condicionadas às diretrizes de privacidade da LGPD.",
+            "item": [
+                {
+                    "name": "CT09 - Acúmulo de pontos com consentimento LGPD ativo (Positivo)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwtToken}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"pedidoId\": \"{{lastPedidoId}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/fidelidade/acumular",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "fidelidade",
+                                "acumular"
+                            ]
+                        },
+                        "description": "Cenário positivo. Pontua o usuário na fidelização apenas se no seu cadastro a flag consentimentoLgpd estiver marcada como verdadeira."
+                    }
+                }
+            ]
+        }
+    ]
+}

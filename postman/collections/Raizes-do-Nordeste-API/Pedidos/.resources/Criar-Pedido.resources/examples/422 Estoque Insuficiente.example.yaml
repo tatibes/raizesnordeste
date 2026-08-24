@@ -1,0 +1,31 @@
+$kind: http-example
+name: '422 - Estoque Insuficiente'
+request:
+  url: '{{baseUrl}}/pedidos'
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: 'Bearer {{authToken}}'
+  body:
+    type: json
+    content: |-
+      {
+        "unidadeId": 1,
+        "canalPedido": "APP",
+        "itens": [{"produtoId": 1, "quantidade": 9999}]
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "ESTOQUE_INSUFICIENTE",
+        "message": "Estoque insuficiente para o produto ID 1 na unidade."
+      }

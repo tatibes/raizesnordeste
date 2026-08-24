@@ -1,0 +1,29 @@
+$kind: http-example
+name: '401 - Sem Autenticação'
+request:
+  url: '{{baseUrl}}/pedidos'
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "unidadeId": 1,
+        "canalPedido": "TOTEM",
+        "itens": [{"produtoId": 1, "quantidade": 1}]
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "UNAUTHORIZED",
+        "message": "Token de autenticação não fornecido ou inválido."
+      }

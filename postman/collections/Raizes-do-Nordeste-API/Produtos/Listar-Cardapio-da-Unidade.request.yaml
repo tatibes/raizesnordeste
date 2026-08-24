@@ -1,0 +1,37 @@
+$kind: http-request
+name: 'Listar Cardápio da Unidade'
+method: GET
+url: '{{baseUrl}}/unidades/{{unidadeId}}/produtos'
+description: 'Retorna todos os produtos do cardápio de uma unidade específica com seus saldos de estoque.'
+pathVariables:
+  - key: unidadeId
+    value: '1'
+    description: 'ID numérico da unidade'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 200 - Cardápio retornado", () => {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Resposta é um array", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.be.an("array");
+      });
+
+      pm.test("Cada produto tem id, nome e precoBase (ou preco_base)", () => {
+        const json = pm.response.json();
+        if (json.length > 0) {
+          json.forEach((produto) => {
+            pm.expect(produto).to.have.property("id");
+            pm.expect(produto).to.have.property("nome");
+            const hasPreco = produto.hasOwnProperty("precoBase") || produto.hasOwnProperty("preco_base");
+            pm.expect(hasPreco, "produto deve ter precoBase ou preco_base").to.be.true;
+          });
+        }
+      });
+
+      pm.test("Tempo de resposta abaixo de 3000ms", () => {
+        pm.expect(pm.response.responseTime).to.be.below(3000);
+      });

@@ -1,0 +1,71 @@
+$kind: http-request
+name: Criar Pedido
+method: POST
+url: '{{baseUrl}}/pedidos'
+description: 'Registra um pedido multicanal validando estoque local. Requer autenticação JWT Bearer. canalPedido deve ser: APP, TOTEM, BALCAO ou WEB.'
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "unidadeId": 38,
+      "canalPedido": "TOTEM",
+      "formaPagamento": "CARTAO_CREDITO",
+      "itens": [
+        {
+          "produtoId": 110,
+          "quantidade": 2
+        },
+        {
+          "produtoId": 112,
+          "quantidade": 1
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 201 - Pedido criado com sucesso", () => {
+        pm.response.to.have.status(201);
+      });
+
+      pm.test("Resposta contém pedidoId", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("pedidoId");
+      });
+
+      pm.test("Pedido tem canalPedido válido", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("canalPedido");
+        pm.expect(["APP", "TOTEM", "BALCAO", "WEB"]).to.include(json.canalPedido);
+      });
+
+      pm.test("Pedido tem status inicial correto", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("status");
+        pm.expect(json.status).to.equal("AGUARDANDO_PAGAMENTO");
+      });
+
+      pm.test("Pedido tem total numérico positivo", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("total");
+        pm.expect(Number(json.total)).to.be.above(0);
+      });
+
+      pm.test("Pedido contém array de itens", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.have.property("itens");
+        pm.expect(json.itens).to.be.an("array").and.not.empty;
+      });
+
+      pm.test("Tempo de resposta abaixo de 3000ms", () => {
+        pm.expect(pm.response.responseTime).to.be.below(3000);
+      });

@@ -1,0 +1,38 @@
+$kind: http-request
+name: Listar Pedidos da Unidade
+method: GET
+url: '{{baseUrl}}/unidades/{{unidadeId}}/pedidos'
+description: 'Retorna todos os pedidos de uma unidade específica, com dados do usuário e itens. Usado pelo painel de pedidos.'
+pathVariables:
+  - key: unidadeId
+    value: '1'
+    description: 'ID numérico da unidade'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 200 - Pedidos retornados", () => {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Resposta é um array", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.be.an("array");
+      });
+
+      pm.test("Cada pedido tem id, status, canalPedido e itens", () => {
+        const json = pm.response.json();
+        if (json.length > 0) {
+          json.forEach((pedido) => {
+            pm.expect(pedido).to.have.property("id");
+            pm.expect(pedido).to.have.property("status");
+            pm.expect(pedido).to.have.property("canalPedido");
+            pm.expect(pedido).to.have.property("itens");
+            pm.expect(pedido.itens).to.be.an("array");
+          });
+        }
+      });
+
+      pm.test("Tempo de resposta abaixo de 3000ms", () => {
+        pm.expect(pm.response.responseTime).to.be.below(3000);
+      });

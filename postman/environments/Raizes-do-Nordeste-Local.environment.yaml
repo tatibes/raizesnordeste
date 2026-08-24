@@ -1,0 +1,8 @@
+name: Raízes do Nordeste - Local
+values:
+  - key: baseUrl
+    value: 'http://localhost:5432'
+  - key: unidadeId
+    value: '38'
+  - key: authToken
+    value: ''

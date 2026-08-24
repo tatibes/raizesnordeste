@@ -1,0 +1,26 @@
+$kind: http-example
+name: '400 - Campos Obrigatórios Ausentes'
+request:
+  url: '{{baseUrl}}/produtos'
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "descricao": "Produto sem nome nem preço"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Campos nome, precoBase e unidadeId são obrigatórios."
+      }

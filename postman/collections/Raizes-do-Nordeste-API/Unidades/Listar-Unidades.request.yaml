@@ -1,0 +1,32 @@
+$kind: http-request
+name: Listar Unidades
+method: GET
+url: '{{baseUrl}}/unidades'
+description: 'Retorna todas as unidades (franquias) cadastradas no sistema, ordenadas por nome.'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status 200 - Unidades retornadas", () => {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Resposta é um array", () => {
+        const json = pm.response.json();
+        pm.expect(json).to.be.an("array");
+      });
+
+      pm.test("Cada unidade tem id, nome e ativa", () => {
+        const json = pm.response.json();
+        if (json.length > 0) {
+          json.forEach((unidade) => {
+            pm.expect(unidade).to.have.property("id");
+            pm.expect(unidade).to.have.property("nome");
+            pm.expect(unidade).to.have.property("ativa");
+          });
+        }
+      });
+
+      pm.test("Tempo de resposta abaixo de 3000ms", () => {
+        pm.expect(pm.response.responseTime).to.be.below(3000);
+      });

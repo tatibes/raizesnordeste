@@ -1,0 +1,6 @@
+$kind: collection
+name: 'Raízes do Nordeste API'
+description: 'API do sistema de pedidos multicanal e controle de estoque do restaurante Raízes do Nordeste.'
+variables:
+  - key: baseUrl
+    value: 'http://localhost:3000'

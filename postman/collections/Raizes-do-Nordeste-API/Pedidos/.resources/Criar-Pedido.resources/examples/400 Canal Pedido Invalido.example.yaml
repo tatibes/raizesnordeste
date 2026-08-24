@@ -1,0 +1,31 @@
+$kind: http-example
+name: '400 - Canal de Pedido Inválido'
+request:
+  url: '{{baseUrl}}/pedidos'
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: 'Bearer {{authToken}}'
+  body:
+    type: json
+    content: |-
+      {
+        "unidadeId": 1,
+        "canalPedido": "DRIVE_THRU",
+        "itens": [{"produtoId": 1, "quantidade": 1}]
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "CANAL_INVALIDO",
+        "message": "O campo canalPedido é obrigatório e deve ser APP, TOTEM, BALCAO ou WEB."
+      }

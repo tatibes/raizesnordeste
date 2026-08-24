@@ -1,0 +1,26 @@
+$kind: http-example
+name: '400 - Campos Obrigatórios Ausentes'
+request:
+  url: '{{baseUrl}}/auth/login'
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "email": "cliente@email.com"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Email e senha são obrigatórios."
+      }

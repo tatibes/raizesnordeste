@@ -1,0 +1,27 @@
+$kind: http-example
+name: '401 - Credenciais Inválidas'
+request:
+  url: '{{baseUrl}}/auth/login'
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "email": "usuario@inexistente.com",
+        "senha": "senhaErrada"
+      }
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Credenciais inválidas."
+      }
