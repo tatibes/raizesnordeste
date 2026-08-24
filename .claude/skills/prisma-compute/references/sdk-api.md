@@ -56,7 +56,7 @@ const result = await compute.deploy({
   appName: "my-app",
   // region: "us-east-1", // optional: explicit placement for a new app
   envVars: { DATABASE_URL: databaseUrl },
-  portMapping: { http: 3000 },
+  portMapping: { http: 5432 },
 })
 
 if (result.isOk()) {

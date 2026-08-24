@@ -352,8 +352,8 @@ Fix:
 - read `process.env.PORT`
 - pass `--http-port <port>` when the app has a fixed port
 - use the generated `compute:deploy` script when it exists
-- remember the `@prisma/cli app deploy` default is HTTP `3000`; generated Hono/Elysia projects usually configure `8080` through `prisma.compute.ts` or flag-backed `--http-port 8080` scripts
-- use the template defaults: Hono/Elysia `8080`, Next/TanStack/Nuxt `3000`, Astro `4321`
+- remember the `@prisma/cli app deploy` default is HTTP `5432`; generated Hono/Elysia projects usually configure `8080` through `prisma.compute.ts` or flag-backed `--http-port 8080` scripts
+- use the template defaults: Hono/Elysia `8080`, Next/TanStack/Nuxt `5432`, Astro `4321`
 
 ## Public URL Smoke Test Fails
 

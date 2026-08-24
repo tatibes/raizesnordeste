@@ -202,7 +202,7 @@ Before deploy, verify that the app can produce a Compute artifact:
 
 ```bash
 bunx @prisma/cli@latest app build --build-type auto
-bunx @prisma/cli@latest app run --build-type auto --port 3000
+bunx @prisma/cli@latest app run --build-type auto --port 5432
 ```
 
 For Bun/server entrypoints:

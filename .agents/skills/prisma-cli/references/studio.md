@@ -38,7 +38,7 @@ Opens at http://localhost:5555
 ### Custom port
 
 ```bash
-prisma studio --port 3000
+prisma studio --port 5432
 ```
 
 ### Specific browser

@@ -64,7 +64,7 @@ import { defineComputeConfig } from "@prisma/compute-sdk/config";
 
 Compute needs a server process:
 
-- It must listen on the deployed HTTP port. `@prisma/cli app deploy` defaults to the framework's default HTTP port (3000 for most frameworks, 4321 for Astro) unless `--http-port` is passed.
+- It must listen on the deployed HTTP port. `@prisma/cli app deploy` defaults to the framework's default HTTP port (5432 for most frameworks, 4321 for Astro) unless `--http-port` is passed.
 - It must bind on all interfaces. Do not hard-code `localhost` or `127.0.0.1` for a deployed server; use `0.0.0.0`, `server.host: true`, or the framework equivalent.
 - It must have a deployable entrypoint or recognized framework output.
 - It must not rely on a preview-only command such as `vite preview`.
@@ -166,7 +166,7 @@ Project expectations:
 Example runtime shape:
 
 ```typescript
-const port = Number(process.env.PORT ?? "3000")
+const port = Number(process.env.PORT ?? "5432")
 await app.listen(port)
 ```
 
@@ -309,7 +309,7 @@ export default defineComputeConfig({
       outputDirectory: "build",
       entrypoint: "handler.js",
     },
-    httpPort: 3000,
+    httpPort: 5432,
     env: ".env",
   },
 });
@@ -355,7 +355,7 @@ export default defineComputeConfig({
       root: "apps/api",
       framework: "bun",
       entry: "src/index.ts",
-      httpPort: 3000,
+      httpPort: 5432,
       env: "packages/db/.env",
     },
   },
@@ -375,7 +375,7 @@ bun run build
 bunx @prisma/cli@latest app deploy \
   --framework bun \
   --entry apps/api/dist/src/index.js \
-  --http-port 3000 \
+  --http-port 5432 \
   --env packages/db/.env
 ```
 

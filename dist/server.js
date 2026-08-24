@@ -30,7 +30,7 @@ app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.de
 app.use(routes_1.default);
 // 3. Middleware Global de Tratamento de Erros (Deve ficar SEMPRE no final das rotas)
 app.use(errorHandler_1.errorHandler);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5432;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor a rodar na porta ${PORT}`);
     console.log(`📄 Swagger UI disponível em http://localhost:${PORT}/api-docs`);

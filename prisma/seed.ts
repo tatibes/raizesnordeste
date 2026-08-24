@@ -1,13 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import type { } from 'node';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting full database seeding...');
+  console.log('Starting full database seeding...');
 
   //Limpar banco na ordem correta para respeitar FKs
-  console.log('🧹 Clearing old data...');
+  console.log( 'Clearing old data...');
   await prisma.logAuditoria.deleteMany({});
   await prisma.pagamento.deleteMany({});
   await prisma.itemPedido.deleteMany({});
