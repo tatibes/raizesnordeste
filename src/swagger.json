@@ -1,24 +1,108 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Minha API",
-    "version": "1.0.0",
-    "description": "Documentação da API"
+    "title": "API Raízes do Nordeste - Back-End",
+    "description": "Documentação oficial e interativa do sistema de pedidos multicanal e controle de estoque.",
+    "version": "1.0.0"
   },
   "servers": [
     {
       "url": "http://localhost:3000",
-      "description": "Servidor local"
+      "description": "Servidor de Desenvolvimento Local"
     }
   ],
   "paths": {
-    "/health": {
-      "get": {
-        "summary": "Health check",
+    "/auth/login": {
+      "post": {
+        "summary": "Realizar login",
+        "description": "Autentica o usuário e emite o token Bearer JWT.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "example": "cliente@email.com" },
+                  "senha": { "type": "string", "example": "SenhaSegura123!" }
+                },
+                "required": ["email", "senha"]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Servidor funcionando"
+            "description": "Login realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": { "type": "string", "example": "eyJhbGciOiJIUz..." },
+                    "tipo": { "type": "string", "example": "Bearer" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Credenciais inválidas" }
+        }
+      }
+    },
+    "/unidades/{unidadeId}/produtos": {
+      "get": {
+        "summary": "Listar cardápio da unidade",
+        "description": "Retorna todos os produtos cadastrados e seus saldos de estoque locais.",
+        "parameters": [
+          {
+            "name": "unidadeId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID numérico da franquia física"
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de produtos retornada com sucesso"
+          }
+        }
+      }
+    },
+    "/pedidos": {
+      "post": {
+        "summary": "Criar um pedido multicanal",
+        "description": "Registra um pedido validando estoque local e exigindo a origem de venda.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "unidadeId": { "type": "integer", "example": 1 },
+                  "canalPedido": { "type": "string", "enum": ["APP", "TOTEM", "BALCAO", "WEB"], "example": "TOTEM" },
+                  "itens": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "produtoId": { "type": "integer", "example": 10 },
+                        "quantidade": { "type": "integer", "example": 2 }
+                      }
+                    }
+                  }
+                },
+                "required": ["unidadeId", "canalPedido", "itens"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Pedido registrado com sucesso" },
+          "400": { "description": "Campo obrigatório ausente ou inválido (ex: canalPedido)" },
+          "409": { "description": "Estoque insuficiente para um ou mais itens" }
         }
       }
     }

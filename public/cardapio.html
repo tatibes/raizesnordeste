@@ -20,7 +20,7 @@
 
     header {
       text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 30px;
       padding: 20px;
       background-color: #c0392b;
       color: white;
@@ -37,39 +37,15 @@
       margin: 0 auto;
     }
 
-    .nav-links {
-      display: flex;
-      justify-content: flex-start;
-      margin-bottom: 20px;
-    }
-
-    .nav-links a {
-      color: #c0392b;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .nav-links a:hover {
-      text-decoration: underline;
-    }
-
     .filtros {
       display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 25px;
       background: white;
-      padding: 15px 20px;
+      padding: 15px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    .filtro-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
 
     select {
@@ -148,95 +124,31 @@
 
   <div class="container">
     <header>
-      <h1>🌵 Raízes do Nordeste</h1>
+      <h1>Raízes do Nordeste</h1>
       <p>Cardápio Digital & Sabores Regionais</p>
     </header>
 
-    <div class="nav-links">
-      <a href="index.html">⬅ Voltar ao Portal de Sistemas</a>
-    </div>
-
     <div class="filtros">
-      <div class="filtro-item">
-        <label for="selectPlataforma"><strong>Tipo de Plataforma:</strong></label>
-        <select id="selectPlataforma">
-          <option value="WEB">Web Browser (WEB)</option>
-          <option value="APP">Aplicativo (APP)</option>
-          <option value="BALCAO">Balcão / Loja (BALCÃO)</option>
-          <option value="TOTEM">Totem de Autoatendimento (TOTEM)</option>
-        </select>
-      </div>
-
-      <div class="filtro-item">
-        <label for="selectUnidade"><strong>Selecione a Unidade:</strong></label>
-        <select id="selectUnidade" onchange="carregarCardapio()">
-          <option value="">A carregar unidades...</option>
-        </select>
-      </div>
+      <label for="selectUnidade"><strong>Selecione a Unidade:</strong></label>
+      <select id="selectUnidade" onchange="carregarCardapio()">
+        <option value="1">Unidade 1 - Recife</option>
+        <option value="2">Unidade 2 - Salvador</option>
+        <option value="3">Unidade 3 - Fortaleza</option>
+      </select>
     </div>
 
     <main id="gridProdutos" class="grid-produtos">
-      <div class="loading">A carregar o cardápio...</div>
+      <div class="loading">Carregar o cardápio...</div>
     </main>
   </div>
 
   <script>
-    function getDefaultAPIUrl() {
-      if (window.location.protocol.startsWith('http')) {
-        return window.location.origin;
-      }
-      return 'http://localhost:3000';
-    }
-
-    // Obter URL base do localStorage com fallback dinâmico
-    if (localStorage.getItem('API_URL') === null) {
-      localStorage.setItem('API_URL', getDefaultAPIUrl());
-    }
-    const API_URL = localStorage.getItem('API_URL');
-
-    async function carregarUnidades() {
-      const select = document.getElementById('selectUnidade');
-      try {
-        const response = await fetch(`${API_URL}/unidades`);
-        if (!response.ok) throw new Error('Erro ao buscar unidades.');
-        const unidades = await response.json();
-
-        select.innerHTML = '<option value="">Selecione uma unidade...</option>';
-        unidades.forEach((unidade, index) => {
-          const option = document.createElement('option');
-          option.value = unidade.id;
-          option.textContent = unidade.nome;
-          if (index === 0) {
-            option.selected = true; // Seleciona a primeira por padrão
-          }
-          select.appendChild(option);
-        });
-
-        if (unidades.length > 0) {
-          carregarCardapio();
-        } else {
-          document.getElementById('gridProdutos').innerHTML = '<div class="loading">Nenhuma unidade disponível no banco.</div>';
-        }
-      } catch (error) {
-        console.error('Erro ao buscar unidades:', error);
-        select.innerHTML = '<option value="">Erro ao carregar unidades</option>';
-        document.getElementById('gridProdutos').innerHTML = `
-          <div class="erro">
-            ⚠️ Erro ao carregar as unidades do banco.<br>
-            <small>Verifique se o backend está ativo e se o banco de dados contém unidades.</small>
-          </div>
-        `;
-      }
-    }
+    // URL base da sua API Node/Express
+    const API_URL = 'http://localhost:5432';
 
     async function carregarCardapio() {
       const grid = document.getElementById('gridProdutos');
       const unidadeId = document.getElementById('selectUnidade').value;
-
-      if (!unidadeId) {
-        grid.innerHTML = '<div class="loading">Por favor, selecione uma unidade para ver o cardápio.</div>';
-        return;
-      }
 
       grid.innerHTML = '<div class="loading">A carregar o cardápio...</div>';
 
@@ -262,7 +174,7 @@
           card.className = 'card-produto';
 
           // Garante a leitura correta do preço do banco de dados (preco_base ou preco)
-          const precoValor = Number(produto.precoBase ?? produto.preco_base ?? produto.preco ?? 0);
+          const precoValor = Number(produto.preco_base ?? produto.preco ?? 0);
           const precoFormatado = precoValor.toLocaleString('pt-BR', {
             style: 'currency',
             currency: 'BRL'
@@ -287,14 +199,13 @@
         grid.innerHTML = `
           <div class="erro">
             ⚠️ Erro ao carregar o cardápio.<br>
-            <small>Verifique se o backend está ativo e com o CORS habilitado.</small>
           </div>
         `;
       }
     }
 
-    // Carrega as unidades automaticamente ao iniciar
-    window.addEventListener('DOMContentLoaded', carregarUnidades);
+    // Carrega o cardápio automaticamente assim que o DOM estiver pronto
+    window.addEventListener('DOMContentLoaded', carregarCardapio);
   </script>
 </body>
 </html>

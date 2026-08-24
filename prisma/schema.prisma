@@ -56,6 +56,7 @@ model Unidade {
   nome     String   @db.VarChar(100)
   endereco String?  @db.Text
   ativa    Boolean  @default(true)
+  grupo    String?  @db.VarChar(50)
   
   // Relacionamentos existentes
   estoque  EstoqueUnidade[]

@@ -345,8 +345,6 @@
     <div class="nav-links">
       <a href="index.html">⬅ Voltar ao Portal de Sistemas</a>
     </div>
-
-    <!-- Banner de Autenticação -->
     <div id="authBanner" class="auth-banner">
       <div>
         <span>🔒 <strong>Atenção:</strong> Você precisa fazer login para enviar o pedido à cozinha.</span>
@@ -355,7 +353,6 @@
     </div>
 
     <div class="app-layout">
-      <!-- Coluna da Esquerda: Escolha de Produtos -->
       <div>
         <div class="card">
           <h2 class="section-title">1. Escolha a Plataforma & Unidade</h2>
@@ -385,8 +382,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Coluna da Direita: Carrinho & Fechamento -->
       <div>
         <div class="card">
           <h2 class="section-title">3. Carrinho de Compras</h2>
@@ -394,7 +389,6 @@
             🛒 Seu carrinho está vazio.<br>Adicione delícias nordestinas à esquerda!
           </div>
           <ul id="carrinhoItens" class="carrinho-itens" style="display: none;">
-            <!-- Itens preenchidos via JS -->
           </ul>
 
           <div class="form-group" style="margin-bottom: 20px;">
@@ -572,7 +566,6 @@
       vazioDiv.style.display = 'none';
       itensUl.style.display = 'block';
 
-      // Verificar token no localStorage para habilitar botão
       const token = localStorage.getItem('auth_token');
       btnComprar.disabled = !token;
 
@@ -647,7 +640,6 @@
 
         const pedidoCriado = await response.json();
         
-        // Exibir modal de sucesso
         const totalPedido = Number(pedidoCriado.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         document.getElementById('modalMensagem').innerHTML = `
           Seu pedido <strong>#${pedidoCriado.pedidoId}</strong> foi gerado com sucesso!<br>
@@ -665,7 +657,7 @@
 
       } catch (error) {
         console.error(error);
-        alert(`❌ Erro: ${error.message}`);
+        alert(`Erro: ${error.message}`);
         atualizarCarrinhoUI();
       } finally {
         btnComprar.textContent = 'Finalizar Pedido & Comprar 🛒';
