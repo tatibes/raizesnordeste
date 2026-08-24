@@ -131,9 +131,7 @@
     <div class="filtros">
       <label for="selectUnidade"><strong>Selecione a Unidade:</strong></label>
       <select id="selectUnidade" onchange="carregarCardapio()">
-        <option value="1">Unidade 1 - Recife</option>
-        <option value="2">Unidade 2 - Salvador</option>
-        <option value="3">Unidade 3 - Fortaleza</option>
+        <option value="">A carregar unidades...</option>
       </select>
     </div>
 
@@ -158,9 +156,43 @@
     }
     const API_URL = localStorage.getItem('API_URL');
 
+    async function carregarUnidades() {
+      const select = document.getElementById('selectUnidade');
+      try {
+        const response = await fetch(`${API_URL}/unidades`);
+        if (!response.ok) throw new Error('Erro ao buscar unidades.');
+        const unidades = await response.json();
+
+        select.innerHTML = '';
+        unidades.forEach((unidade, index) => {
+          const option = document.createElement('option');
+          option.value = unidade.id;
+          option.textContent = unidade.nome;
+          if (index === 0) option.selected = true;
+          select.appendChild(option);
+        });
+
+        // Carrega o cardápio da primeira unidade por padrão
+        carregarCardapio();
+      } catch (error) {
+        console.error('Erro ao carregar unidades:', error);
+        select.innerHTML = '<option value="">Erro ao carregar unidades</option>';
+        document.getElementById('gridProdutos').innerHTML = `
+          <div class="erro">
+            ⚠️ Erro ao carregar as unidades do servidor.<br>
+          </div>
+        `;
+      }
+    }
+
     async function carregarCardapio() {
       const grid = document.getElementById('gridProdutos');
       const unidadeId = document.getElementById('selectUnidade').value;
+
+      if (!unidadeId) {
+        grid.innerHTML = '<div class="loading">Por favor, selecione uma unidade.</div>';
+        return;
+      }
 
       grid.innerHTML = '<div class="loading">A carregar o cardápio...</div>';
 
