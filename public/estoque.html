@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estoque por Unidade - Raízes do Nordeste</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { margin: 0; padding: 20px; background: #f9f6f0; color: #333; }
+    .container { max-width: 1000px; margin: auto; }
+    header { padding: 24px; margin-bottom: 20px; border-radius: 10px; color: white; background: #8e44ad; text-align: center; }
+    .nav { margin-bottom: 20px; display: flex; justify-content: space-between; }
+    a { color: #8e44ad; font-weight: bold; text-decoration: none; }
+    .controls, .summary, .table-card { padding: 20px; margin-bottom: 20px; border-radius: 10px; background: white; box-shadow: 0 3px 10px #0000000d; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; }
+    select { width: 100%; max-width: 520px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; }
+    .summary { display: flex; gap: 30px; flex-wrap: wrap; }
+    .metric strong { display: block; color: #8e44ad; font-size: 1.6rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+    th { color: #8e44ad; }
+    .badge { padding: 5px 10px; border-radius: 12px; font-weight: bold; }
+    .ok { background: #e8f8f5; color: #117a65; }
+    .low { background: #fef5e7; color: #d35400; }
+    .empty { padding: 30px; text-align: center; color: #777; }
+    @media (max-width: 600px) { body { padding: 10px; } th:nth-child(2), td:nth-child(2) { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header><h1>📦 Estoque das Unidades</h1><p>Acompanhamento de produtos disponíveis</p></header>
+    <div class="nav"><a href="index.html">⬅ Voltar ao Portal</a><a href="cadastro-produto.html">Cadastrar Produto ➡</a></div>
+    <section class="controls">
+      <label for="selectUnidade">Selecione a unidade</label>
+      <select id="selectUnidade"><option>Carregando unidades...</option></select>
+    </section>
+    <section class="summary">
+      <div class="metric">Produtos cadastrados<strong id="totalProdutos">0</strong></div>
+      <div class="metric">Unidades em estoque<strong id="totalItens">0</strong></div>
+      <div class="metric">Produtos com estoque baixo<strong id="estoqueBaixo">0</strong></div>
+    </section>
+    <section class="table-card">
+      <table>
+        <thead><tr><th>Produto</th><th>Categoria</th><th>Quantidade</th><th>Situação</th></tr></thead>
+        <tbody id="estoqueBody"><tr><td colspan="4" class="empty">Selecione uma unidade.</td></tr></tbody>
+      </table>
+    </section>
+  </div>
+  <script>
+    const apiUrl = (() => {
+      const stored = localStorage.getItem('API_URL');
+      if (stored && !stored.includes('5432')) return stored.replace(/\/$/, '');
+      return window.location.origin;
+    })();
+    const select = document.getElementById('selectUnidade');
+    const body = document.getElementById('estoqueBody');
+    async function carregarEstoque() {
+      const unidadeId = select.value;
+      if (!unidadeId) return;
+      body.innerHTML = '<tr><td colspan="4" class="empty">Carregando estoque...</td></tr>';
+      try {
+        const response = await fetch(`${apiUrl}/unidades/${unidadeId}/estoque`);
+        if (!response.ok) throw new Error('Não foi possível carregar o estoque.');
+        const itens = await response.json();
+        document.getElementById('totalProdutos').textContent = itens.length;
+        document.getElementById('totalItens').textContent = itens.reduce((total, item) => total + item.quantidade, 0);
+        document.getElementById('estoqueBaixo').textContent = itens.filter(item => item.quantidade <= 10).length;
+        body.innerHTML = itens.length ? itens.map(item => `
+          <tr><td>${item.produto.nome}</td><td>${item.produto.categoria || 'Sem categoria'}</td>
+          <td>${item.quantidade}</td><td><span class="badge ${item.quantidade <= 10 ? 'low' : 'ok'}">${item.quantidade <= 10 ? 'Estoque baixo' : 'Disponível'}</span></td></tr>
+        `).join('') : '<tr><td colspan="4" class="empty">Nenhum produto nesta unidade.</td></tr>';
+      } catch (error) {
+        body.innerHTML = `<tr><td colspan="4" class="empty">${error.message}</td></tr>`;
+      }
+    }
+    async function carregarUnidades() {
+      try {
+        const response = await fetch(`${apiUrl}/unidades`);
+        if (!response.ok) throw new Error('Não foi possível carregar as unidades.');
+        const unidades = await response.json();
+        select.innerHTML = '<option value="">Selecione uma unidade...</option>' + unidades.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+        if (unidades.length) { select.value = unidades[0].id; carregarEstoque(); }
+      } catch (error) { select.innerHTML = `<option>${error.message}</option>`; }
+    }
+    select.addEventListener('change', carregarEstoque);
+    carregarUnidades();
+  </script>
+</body>
+</html>

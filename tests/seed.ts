@@ -1,5 +1,6 @@
 // Tetes da base de dados no Prisma
 import { prisma } from '../src/database/prismaClient';
+import { hashPassword } from '../src/utils/password';
 
 export async function seedTestData() {
   console.log('Iniciando base de dados de teste...');
@@ -50,7 +51,7 @@ export async function seedTestData() {
     data: {
       nome: 'Usuario Teste',
       email: 'teste@exemplo.com.br',
-      senha: 'testepassword123', // em produção seria hashed
+      senha: await hashPassword('testepassword123'),
       perfil: 'CLIENTE',
       ativo: true
     }

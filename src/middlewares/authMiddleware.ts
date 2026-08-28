@@ -6,6 +6,7 @@ export interface TokenPayload {
   perfil?: string;
   nome?: string;
   email?: string;
+  exp?: number;
 }
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -31,19 +32,26 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   const [headerB64, payloadB64, signatureB64] = parts;
 
   try {
-    const secret = process.env.JWT_SECRET || '77256de1-6faa-4dc0-a481-eb93fac29c39';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error('JWT_SECRET não configurado.');
+      return res.status(500).json({
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Configuração de autenticação ausente.'
+      });
+    }
     
     // Validar assinatura (HMAC SHA256)
     const hmac = crypto.createHmac('sha256', secret);
     hmac.update(`${headerB64}.${payloadB64}`);
-    const expectedSignature = hmac.digest('base64')
-      .replace(/=/g, '')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_');
+    const expectedSignature = hmac.digest('base64url');
 
     const cleanSignature = signatureB64.replace(/=/g, '');
 
-    if (expectedSignature !== cleanSignature) {
+    if (
+      cleanSignature.length !== expectedSignature.length ||
+      !crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(cleanSignature))
+    ) {
       return res.status(401).json({
         error: 'UNAUTHORIZED',
         message: 'Assinatura do token inválida.'
@@ -53,6 +61,13 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     // Decodificar payload
     const payloadJson = Buffer.from(payloadB64, 'base64').toString('utf-8');
     const payload = JSON.parse(payloadJson) as TokenPayload;
+
+    if (!payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) {
+      return res.status(401).json({
+        error: 'UNAUTHORIZED',
+        message: 'Token de autenticação expirado.'
+      });
+    }
 
     req.user = {
       id: Number(payload.id),

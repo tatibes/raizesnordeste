@@ -1,21 +1,41 @@
 import { Request, Response, NextFunction } from 'express';
 import { PedidoService } from '../services/PedidoService';
 import { prisma } from '../database/prismaClient';
+import { CanalPedido, Prisma, StatusPedido } from '@prisma/client';
+
+function isCanalPedido(value: string): value is CanalPedido {
+  return Object.values(CanalPedido).includes(value as CanalPedido);
+}
+
+function isStatusPedido(value: string): value is StatusPedido {
+  return Object.values(StatusPedido).includes(value as StatusPedido);
+}
 
 export class PedidoController {
+  private async buscarPedidos(where: Prisma.PedidoWhereInput) {
+    return prisma.pedido.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        usuario: { select: { nome: true, email: true } },
+        unidade: { select: { nome: true } },
+        itens: { include: { produto: true } }
+      }
+    });
+  }
 
   async listarPedidosPorUnidade(req: Request, res: Response, next: NextFunction) {
     try {
       const { unidadeId } = req.params;
-      const { canalPedido } = req.query;
+      const { canalPedido, status } = req.query;
 
-      const whereClause: any = {
+      const whereClause: Prisma.PedidoWhereInput = {
         unidadeId: BigInt(String(unidadeId))
       };
 
       if (canalPedido) {
         const canalStr = String(canalPedido).toUpperCase();
-        if (!['APP', 'TOTEM', 'BALCAO', 'WEB', 'PICKUP'].includes(canalStr)) {
+        if (!isCanalPedido(canalStr)) {
           return res.status(400).json({
             error: 'CANAL_INVALIDO',
             message: 'O campo canalPedido fornecido é inválido. Valores aceitos: APP, TOTEM, BALCAO, WEB ou PICKUP.',
@@ -25,31 +45,61 @@ export class PedidoController {
         }
         whereClause.canalPedido = canalStr;
       }
-
-      const pedidos = await prisma.pedido.findMany({
-        where: whereClause,
-        orderBy: {
-          createdAt: 'desc'
-        },
-        include: {
-          usuario: {
-            select: {
-              nome: true,
-              email: true
-            }
-          },
-          itens: {
-            include: {
-              produto: true
-            }
-          }
+      if (status) {
+        const statusStr = String(status).toUpperCase();
+        if (!isStatusPedido(statusStr)) {
+          return res.status(400).json({
+            error: 'STATUS_INVALIDO',
+            message: 'O campo status fornecido é inválido.',
+            timestamp: new Date().toISOString(),
+            path: req.originalUrl
+          });
         }
-      });
+        whereClause.status = statusStr;
+      }
+
+      const pedidos = await this.buscarPedidos(whereClause);
 
       return res.status(200).json(pedidos);
     } catch (error) {
       next(error);
     }
+  }
+
+  async listarTodosPedidos(req: Request, res: Response, next: NextFunction) {
+      try {
+        const whereClause: Prisma.PedidoWhereInput = {};
+        const { canalPedido, status } = req.query;
+
+        if (canalPedido) {
+          const canalStr = String(canalPedido).toUpperCase();
+          if (!isCanalPedido(canalStr)) {
+            return res.status(400).json({
+              error: 'CANAL_INVALIDO',
+              message: 'O campo canalPedido fornecido é inválido.',
+              timestamp: new Date().toISOString(),
+              path: req.originalUrl
+            });
+          }
+          whereClause.canalPedido = canalStr;
+        }
+        if (status) {
+          const statusStr = String(status).toUpperCase();
+          if (!isStatusPedido(statusStr)) {
+            return res.status(400).json({
+              error: 'STATUS_INVALIDO',
+              message: 'O campo status fornecido é inválido.',
+              timestamp: new Date().toISOString(),
+              path: req.originalUrl
+            });
+          }
+          whereClause.status = statusStr;
+        }
+
+        return res.status(200).json(await this.buscarPedidos(whereClause));
+      } catch (error) {
+        next(error);
+      }
   }
 
   async criarPedido(req: Request, res: Response, next: NextFunction) {

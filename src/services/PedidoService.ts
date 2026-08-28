@@ -1,4 +1,5 @@
 import { prisma } from '../database/prismaClient';
+import { AppError } from '../errors/AppError';
 
 interface ItemRequest {
   produtoId: number;
@@ -15,12 +16,29 @@ interface CriarPedidoDTO {
 
 export class PedidoService {
   async processarPedido(data: CriarPedidoDTO) {
+    if (!Number.isInteger(data.unidadeId) || data.unidadeId <= 0) {
+      throw new AppError('Unidade inválida.', 400, 'UNIDADE_INVALIDA');
+    }
+
+    if (!Array.isArray(data.itens) || data.itens.length === 0) {
+      throw new AppError('O pedido deve conter pelo menos um item.', 400, 'ITENS_INVALIDOS');
+    }
+
     //Executa em transação para garantir consistência
     return await prisma.$transaction(async (tx) => {
       let valorTotal = 0;
       const itensFormatados = [];
 
       for (const item of data.itens) {
+        if (!Number.isInteger(item.produtoId) || item.produtoId <= 0 ||
+            !Number.isInteger(item.quantidade) || item.quantidade <= 0) {
+          throw new AppError(
+            'Cada item deve ter produtoId e quantidade inteira positiva.',
+            400,
+            'ITEM_INVALIDO'
+          );
+        }
+
         //Valida Estoque na Unidade Específica
         const estoque = await tx.estoqueUnidade.findUnique({
           where: {
@@ -33,10 +51,11 @@ export class PedidoService {
         });
 
         if (!estoque || estoque.quantidade < item.quantidade) {
-          const err: any = new Error(`Estoque insuficiente para o produto ID ${item.produtoId} na unidade.`);
-          err.status = 422;
-          err.code = 'ESTOQUE_INSUFICIENTE';
-          throw err;
+          throw new AppError(
+            `Estoque insuficiente para o produto ID ${item.produtoId} na unidade.`,
+            422,
+            'ESTOQUE_INSUFICIENTE'
+          );
         }
 
         // Abate o estoque local
