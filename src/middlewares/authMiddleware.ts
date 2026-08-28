@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import crypto from 'crypto';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 export interface TokenPayload {
   id: number;
@@ -11,7 +11,7 @@ export interface TokenPayload {
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
-   
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({
       error: 'UNAUTHORIZED',
@@ -19,59 +19,30 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     });
   }
 
-  const token = authHeader.split(' ')[1];
-  const parts = token.split('.');
+  const token = authHeader.replace(/^Bearer\s+/i, '');
+  const secret = process.env.JWT_SECRET;
 
-  if (parts.length !== 3) {
-    return res.status(401).json({
-      error: 'UNAUTHORIZED',
-      message: 'Token de autenticação inválido.'
+  if (!secret) {
+    console.error('JWT_SECRET não configurado.');
+    return res.status(500).json({
+      error: 'INTERNAL_SERVER_ERROR',
+      message: 'Configuração de autenticação ausente.'
     });
   }
 
-  const [headerB64, payloadB64, signatureB64] = parts;
-
   try {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      console.error('JWT_SECRET não configurado.');
-      return res.status(500).json({
-        error: 'INTERNAL_SERVER_ERROR',
-        message: 'Configuração de autenticação ausente.'
-      });
-    }
-    
-    // Validar assinatura (HMAC SHA256)
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(`${headerB64}.${payloadB64}`);
-    const expectedSignature = hmac.digest('base64url');
+    const payload = jwt.verify(token, secret) as JwtPayload & TokenPayload;
 
-    const cleanSignature = signatureB64.replace(/=/g, '');
-
-    if (
-      cleanSignature.length !== expectedSignature.length ||
-      !crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(cleanSignature))
-    ) {
+    if (!payload || typeof payload.id === 'undefined') {
       return res.status(401).json({
         error: 'UNAUTHORIZED',
-        message: 'Assinatura do token inválida.'
-      });
-    }
-
-    // Decodificar payload
-    const payloadJson = Buffer.from(payloadB64, 'base64').toString('utf-8');
-    const payload = JSON.parse(payloadJson) as TokenPayload;
-
-    if (!payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) {
-      return res.status(401).json({
-        error: 'UNAUTHORIZED',
-        message: 'Token de autenticação expirado.'
+        message: 'Token de autenticação inválido.'
       });
     }
 
     req.user = {
       id: Number(payload.id),
-      perfil: payload.perfil
+      perfil: typeof payload.perfil === 'string' ? payload.perfil : undefined
     };
 
     next();

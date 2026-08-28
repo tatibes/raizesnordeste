@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { PedidoService } from '../services/PedidoService';
 import { prisma } from '../database/prismaClient';
 import { CanalPedido, Prisma, StatusPedido } from '@prisma/client';
+import { parsePositiveBigInt, parsePositiveInt } from '../utils/parseId';
 
 function isCanalPedido(value: string): value is CanalPedido {
   return Object.values(CanalPedido).includes(value as CanalPedido);
@@ -26,12 +27,20 @@ export class PedidoController {
 
   async listarPedidosPorUnidade(req: Request, res: Response, next: NextFunction) {
     try {
-      const { unidadeId } = req.params;
+      if (!req.user) {
+        return res.status(401).json({ error: 'UNAUTHORIZED', message: 'Usuário não autenticado.' });
+      }
+
+      const unidadeId = parsePositiveBigInt(req.params.unidadeId, 'unidadeId');
       const { canalPedido, status } = req.query;
 
       const whereClause: Prisma.PedidoWhereInput = {
-        unidadeId: BigInt(String(unidadeId))
+        unidadeId
       };
+
+      if (req.user.perfil === 'CLIENTE') {
+        whereClause.usuarioId = BigInt(req.user.id);
+      }
 
       if (canalPedido) {
         const canalStr = String(canalPedido).toUpperCase();
@@ -67,53 +76,62 @@ export class PedidoController {
   }
 
   async listarTodosPedidos(req: Request, res: Response, next: NextFunction) {
-      try {
-        const whereClause: Prisma.PedidoWhereInput = {};
-        const { canalPedido, status } = req.query;
-
-        if (canalPedido) {
-          const canalStr = String(canalPedido).toUpperCase();
-          if (!isCanalPedido(canalStr)) {
-            return res.status(400).json({
-              error: 'CANAL_INVALIDO',
-              message: 'O campo canalPedido fornecido é inválido.',
-              timestamp: new Date().toISOString(),
-              path: req.originalUrl
-            });
-          }
-          whereClause.canalPedido = canalStr;
-        }
-        if (status) {
-          const statusStr = String(status).toUpperCase();
-          if (!isStatusPedido(statusStr)) {
-            return res.status(400).json({
-              error: 'STATUS_INVALIDO',
-              message: 'O campo status fornecido é inválido.',
-              timestamp: new Date().toISOString(),
-              path: req.originalUrl
-            });
-          }
-          whereClause.status = statusStr;
-        }
-
-        return res.status(200).json(await this.buscarPedidos(whereClause));
-      } catch (error) {
-        next(error);
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'UNAUTHORIZED', message: 'Usuário não autenticado.' });
       }
+
+      const whereClause: Prisma.PedidoWhereInput = {};
+      const { canalPedido, status } = req.query;
+
+      if (req.user.perfil === 'CLIENTE') {
+        whereClause.usuarioId = BigInt(req.user.id);
+      }
+
+      if (canalPedido) {
+        const canalStr = String(canalPedido).toUpperCase();
+        if (!isCanalPedido(canalStr)) {
+          return res.status(400).json({
+            error: 'CANAL_INVALIDO',
+            message: 'O campo canalPedido fornecido é inválido.',
+            timestamp: new Date().toISOString(),
+            path: req.originalUrl
+          });
+        }
+        whereClause.canalPedido = canalStr;
+      }
+      if (status) {
+        const statusStr = String(status).toUpperCase();
+        if (!isStatusPedido(statusStr)) {
+          return res.status(400).json({
+            error: 'STATUS_INVALIDO',
+            message: 'O campo status fornecido é inválido.',
+            timestamp: new Date().toISOString(),
+            path: req.originalUrl
+          });
+        }
+        whereClause.status = statusStr;
+      }
+
+      return res.status(200).json(await this.buscarPedidos(whereClause));
+    } catch (error) {
+      next(error);
+    }
   }
 
   async criarPedido(req: Request, res: Response, next: NextFunction) {
     try {
-      // Verifica se o usuário está autenticado antes de acessar propriedades
       if (!req.user) {
         return res.status(401).json({
           error: 'UNAUTHORIZED',
           message: 'Usuário não autenticado.'
         });
       }
-      const usuarioId = req.user.id; // Extraído do Token JWT no authMiddleware
+
+      const usuarioId = Number(req.user.id);
       const { unidadeId, canalPedido, formaPagamento, itens } = req.body;
-      // Validação básica do canal obrigatório
+      const unidadeIdValidado = parsePositiveInt(unidadeId, 'unidadeId');
+
       if (!['APP', 'TOTEM', 'BALCAO', 'WEB', 'PICKUP'].includes(canalPedido)) {
         return res.status(400).json({
           error: 'CANAL_INVALIDO',
@@ -125,8 +143,8 @@ export class PedidoController {
 
       const service = new PedidoService();
       const pedidoCriado = await service.processarPedido({
-        usuarioId: Number(usuarioId),
-        unidadeId,
+        usuarioId,
+        unidadeId: unidadeIdValidado,
         canalPedido,
         formaPagamento,
         itens
@@ -134,7 +152,7 @@ export class PedidoController {
 
       return res.status(201).json(pedidoCriado);
     } catch (error) {
-      next(error); // Encaminha para o errorHandler
+      next(error);
     }
   }
 }

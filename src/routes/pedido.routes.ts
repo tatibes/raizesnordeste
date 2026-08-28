@@ -1,8 +1,8 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import { PedidoController } from '../controllers/PedidoController';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { prisma } from '../database/prismaClient';
-import crypto from 'crypto';
 import { verifyPassword } from '../utils/password';
 import { PagamentoController } from '../controllers/PagamentoController';
 
@@ -14,8 +14,8 @@ const pagamentoController = new PagamentoController();
 pedidoRoutes.post('/pedidos', authMiddleware, controller.criarPedido);
 
 // Listagem de pedidos de uma unidade específica (para painel)
-pedidoRoutes.get('/unidades/:unidadeId/pedidos', controller.listarPedidosPorUnidade.bind(controller));
-pedidoRoutes.get('/pedidos', controller.listarTodosPedidos.bind(controller));
+pedidoRoutes.get('/unidades/:unidadeId/pedidos', authMiddleware, controller.listarPedidosPorUnidade.bind(controller));
+pedidoRoutes.get('/pedidos', authMiddleware, controller.listarTodosPedidos.bind(controller));
 pedidoRoutes.post('/pagamentos/mock', authMiddleware, pagamentoController.processarMock);
 
 // ROTA DE LOGIN DO USUÁRIO
@@ -35,31 +35,21 @@ pedidoRoutes.post('/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenciais inválidas.' });
     }
 
-    // Sign JWT natively
-    const payload = {
-      id: Number(usuario.id),
-      perfil: usuario.perfil,
-      nome: usuario.nome,
-      email: usuario.email
-    };
-    
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       return res.status(500).json({ error: 'JWT_SECRET não configurado.' });
     }
-    
-    const header = { alg: 'HS256', typ: 'JWT' };
-    const headerB64 = Buffer.from(JSON.stringify(header)).toString('base64url');
-    const payloadB64 = Buffer.from(JSON.stringify({
-      ...payload,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60
-    })).toString('base64url');
-    
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(`${headerB64}.${payloadB64}`);
-    const signature = hmac.digest('base64url');
-    
-    const token = `${headerB64}.${payloadB64}.${signature}`;
+
+    const token = jwt.sign(
+      {
+        id: Number(usuario.id),
+        perfil: usuario.perfil,
+        nome: usuario.nome,
+        email: usuario.email
+      },
+      secret,
+      { expiresIn: '1h', algorithm: 'HS256' }
+    );
 
     return res.status(200).json({
       token,

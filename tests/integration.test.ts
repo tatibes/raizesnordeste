@@ -193,7 +193,11 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
   });
 
   await t.test('GET /unidades/:unidadeId/pedidos - Listar todos os pedidos sem filtro', async () => {
-    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos`);
+    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     assert.strictEqual(response.status, 200, 'Listar pedidos sem filtro deve retornar 200');
     const body = await response.json() as any[];
     assert.ok(Array.isArray(body), 'Deve retornar um array de pedidos');
@@ -201,7 +205,11 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
   });
 
   await t.test('GET /unidades/:unidadeId/pedidos - Listar filtrando por canalPedido=PICKUP', async () => {
-    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos?canalPedido=PICKUP`);
+    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos?canalPedido=PICKUP`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     assert.strictEqual(response.status, 200, 'Listar pedidos com filtro PICKUP deve retornar 200');
     const body = await response.json() as any[];
     assert.ok(Array.isArray(body), 'Deve retornar um array de pedidos');
@@ -212,7 +220,11 @@ test('Teste de integração - Raízes do Nordeste API', async (t) => {
   });
 
   await t.test('GET /unidades/:unidadeId/pedidos - Falha ao filtrar com canal inválido', async () => {
-    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos?canalPedido=CHURRASCARIA`);
+    const response = await fetch(`http://localhost:3001/unidades/${ids.unidadeId}/pedidos?canalPedido=CHURRASCARIA`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     assert.strictEqual(response.status, 400, 'Filtrar canal inválido deve retornar 400');
     const body = await response.json() as any;
     assert.strictEqual(body.error, 'CANAL_INVALIDO', 'Código do erro deve ser CANAL_INVALIDO');

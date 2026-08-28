@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../database/prismaClient';
 import { AppError } from '../errors/AppError';
+import { parsePositiveInt, parsePositiveBigInt } from '../utils/parseId';
 
 const metodosPagamento = ['PIX', 'CARTAO_DEBITO', 'CARTAO_CREDITO', 'DINHEIRO'];
 
@@ -11,13 +12,11 @@ export class PagamentoController {
         throw new AppError('Usuário não autenticado.', 401, 'UNAUTHORIZED');
       }
 
-      const pedidoId = Number(req.body.pedidoId);
+      const pedidoId = parsePositiveInt(req.body.pedidoId, 'pedidoId');
       const metodoPagamento = String(req.body.metodoPagamento || '').toUpperCase();
       const simularAprovacao = req.body.simularAprovacao;
 
       if (
-        !Number.isInteger(pedidoId) ||
-        pedidoId <= 0 ||
         !metodosPagamento.includes(metodoPagamento) ||
         typeof simularAprovacao !== 'boolean'
       ) {
@@ -30,7 +29,7 @@ export class PagamentoController {
 
       const resultado = await prisma.$transaction(async (tx) => {
         const pedido = await tx.pedido.findUnique({
-          where: { id: BigInt(pedidoId) },
+          where: { id: parsePositiveBigInt(pedidoId, 'pedidoId') },
           include: { itens: true }
         });
 

@@ -5,8 +5,9 @@ import { hashPassword } from '../src/utils/password';
 export async function seedTestData() {
   console.log('Iniciando base de dados de teste...');
 
-  //Limpar logs, pagamentos, itens_pedido e pedidos de teste antigos para evitar conflitos de FK
+  // Limpar registros em ordem para respeitar a integridade referencial do Prisma.
   await prisma.logAuditoria.deleteMany({ where: { acao: 'CRIAR_PEDIDO' } });
+  await prisma.pagamento.deleteMany({});
   await prisma.itemPedido.deleteMany({});
   await prisma.pedido.deleteMany({});
   await prisma.estoqueUnidade.deleteMany({});

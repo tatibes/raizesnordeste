@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../database/prismaClient';
+import { parsePositiveBigInt, parsePositiveInt } from '../utils/parseId';
 
 const router = Router();
 
@@ -9,11 +10,10 @@ const router = Router();
  */
 router.get('/unidades/:unidadeId/produtos', async (req: Request, res: Response) => {
   try {
-    const { unidadeId } = req.params;
+    const unidadeId = parsePositiveBigInt(req.params.unidadeId, 'unidadeId');
 
-    // Busca os produtos do banco de dados
     const produtos = await prisma.produto.findMany({
-      where: { unidadeId: Number(unidadeId) }
+      where: { unidadeId }
     });
 
     return res.status(200).json(produtos);
@@ -25,10 +25,7 @@ router.get('/unidades/:unidadeId/produtos', async (req: Request, res: Response) 
 
 router.get('/unidades/:unidadeId/estoque', async (req: Request, res: Response) => {
   try {
-    const unidadeId = Number(req.params.unidadeId);
-    if (!Number.isInteger(unidadeId) || unidadeId <= 0) {
-      return res.status(400).json({ error: 'UNIDADE_INVALIDA', message: 'Unidade inválida.' });
-    }
+    const unidadeId = parsePositiveBigInt(req.params.unidadeId, 'unidadeId');
 
     const estoque = await prisma.estoqueUnidade.findMany({
       where: { unidadeId },
@@ -68,7 +65,7 @@ router.post('/produtos', async (req: Request, res: Response) => {
     const { nome, descricao, categoria, precoBase, unidadeId, quantidadeEstoque } = req.body;
 
     const preco = Number(precoBase);
-    const unidade = Number(unidadeId);
+    const unidade = parsePositiveInt(unidadeId, 'unidadeId');
     const quantidade = quantidadeEstoque === undefined ? 0 : Number(quantidadeEstoque);
 
     if (
@@ -76,8 +73,6 @@ router.post('/produtos', async (req: Request, res: Response) => {
       nome.trim().length === 0 ||
       !Number.isFinite(preco) ||
       preco <= 0 ||
-      !Number.isInteger(unidade) ||
-      unidade <= 0 ||
       !Number.isInteger(quantidade) ||
       quantidade < 0
     ) {
@@ -85,7 +80,6 @@ router.post('/produtos', async (req: Request, res: Response) => {
     }
 
     const produto = await prisma.$transaction(async (tx) => {
-      //Criar o produto
       const novoProduto = await tx.produto.create({
         data: {
           nome,
@@ -96,7 +90,6 @@ router.post('/produtos', async (req: Request, res: Response) => {
         }
       });
 
-      //Criar ou inicializar o estoque na unidade
       await tx.estoqueUnidade.create({
         data: {
           unidadeId: BigInt(unidade),

@@ -17,9 +17,8 @@ Antes de iniciar a configuração da aplicação, certifique-se de possuir as se
 As dependências instaladas no projeto são:
 *   `express`: Framework HTTP para rotas e controllers.
 *   `@prisma/client`: Cliente de banco de dados tipado gerado a partir do schema.
-*   `jsonwebtoken`: Implementação de emissão e verificação de tokens JWT.
-*   `bcrypt`: Hashing criptográfico de senhas (LGPD e segurança).
-*   `cors`: Habilitação de requisições de origens cruzadas (para conexão com o Render utilizado neste projeto).
+*   `jsonwebtoken`: Emissão e verificação de tokens JWT para autenticação.
+*   `cors`: Habilitação de requisições de origens cruzadas.
 *   `swagger-ui-express`: Renderização dinâmica da documentação OpenAPI v3.
 *   `dotenv`: Carregamento dinâmico de variáveis de ambiente.
 
