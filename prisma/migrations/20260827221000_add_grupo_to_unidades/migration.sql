@@ -1,0 +1,1 @@
+ALTER TABLE "unidades" ADD COLUMN "grupo" VARCHAR(50);

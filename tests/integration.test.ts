@@ -12,7 +12,10 @@ process.env.JWT_SECRET = '77256de1-6faa-4dc0-a481-eb93fac29c39';
 function generateTestToken(payload: any, secret: string): string {
   const header = { alg: 'HS256', typ: 'JWT' };
   const headerB64 = Buffer.from(JSON.stringify(header)).toString('base64url');
-  const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const payloadB64 = Buffer.from(JSON.stringify({
+    ...payload,
+    exp: Math.floor(Date.now() / 1000) + 60 * 60
+  })).toString('base64url');
 
   const hmac = crypto.createHmac('sha256', secret);
   hmac.update(`${headerB64}.${payloadB64}`);

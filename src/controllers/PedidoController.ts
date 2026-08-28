@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { PedidoService } from '../services/PedidoService';
 import { prisma } from '../database/prismaClient';
+import { CanalPedido, Prisma } from '@prisma/client';
+
+function isCanalPedido(value: string): value is CanalPedido {
+  return Object.values(CanalPedido).includes(value as CanalPedido);
+}
 
 export class PedidoController {
 
@@ -9,13 +14,13 @@ export class PedidoController {
       const { unidadeId } = req.params;
       const { canalPedido } = req.query;
 
-      const whereClause: any = {
+      const whereClause: Prisma.PedidoWhereInput = {
         unidadeId: BigInt(String(unidadeId))
       };
 
       if (canalPedido) {
         const canalStr = String(canalPedido).toUpperCase();
-        if (!['APP', 'TOTEM', 'BALCAO', 'WEB', 'PICKUP'].includes(canalStr)) {
+        if (!isCanalPedido(canalStr)) {
           return res.status(400).json({
             error: 'CANAL_INVALIDO',
             message: 'O campo canalPedido fornecido é inválido. Valores aceitos: APP, TOTEM, BALCAO, WEB ou PICKUP.',

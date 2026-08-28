@@ -3,6 +3,7 @@ import { PedidoController } from '../controllers/PedidoController';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { prisma } from '../database/prismaClient';
 import crypto from 'crypto';
+import { verifyPassword } from '../utils/password';
 
 const pedidoRoutes = Router();
 const controller = new PedidoController();
@@ -26,7 +27,7 @@ pedidoRoutes.post('/auth/login', async (req, res) => {
       where: { email }
     });
 
-    if (!usuario || usuario.senha !== senha) {
+    if (!usuario || !usuario.ativo || !(await verifyPassword(senha, usuario.senha))) {
       return res.status(401).json({ error: 'Credenciais inválidas.' });
     }
 
@@ -38,11 +39,17 @@ pedidoRoutes.post('/auth/login', async (req, res) => {
       email: usuario.email
     };
     
-    const secret = process.env.JWT_SECRET || '77256de1-6faa-4dc0-a481-eb93fac29c39';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ error: 'JWT_SECRET não configurado.' });
+    }
     
     const header = { alg: 'HS256', typ: 'JWT' };
     const headerB64 = Buffer.from(JSON.stringify(header)).toString('base64url');
-    const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const payloadB64 = Buffer.from(JSON.stringify({
+      ...payload,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60
+    })).toString('base64url');
     
     const hmac = crypto.createHmac('sha256', secret);
     hmac.update(`${headerB64}.${payloadB64}`);

@@ -26,6 +26,7 @@
       color: white;
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.25s ease;
     }
 
     header h1 {
@@ -81,7 +82,32 @@
       padding: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       margin-bottom: 25px;
+      transition: border-top-color 0.25s ease;
     }
+
+    .platform-context {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fef5e7;
+      border-left: 4px solid #e67e22;
+      padding: 10px 12px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+
+    body.platform-app header { background-color: #2980b9; }
+    body.platform-web header { background-color: #8e44ad; }
+    body.platform-balcao header { background-color: #27ae60; }
+    body.platform-totem header { background-color: #e67e22; }
+    body.platform-pickup header { background-color: #16a085; }
+
+    body.platform-app .section-title { color: #2980b9; border-color: #2980b9; }
+    body.platform-web .section-title { color: #8e44ad; border-color: #8e44ad; }
+    body.platform-balcao .section-title { color: #27ae60; border-color: #27ae60; }
+    body.platform-totem .section-title { color: #e67e22; border-color: #e67e22; }
+    body.platform-pickup .section-title { color: #16a085; border-color: #16a085; }
 
     /* Filtros do Cardápio */
     .filtros {
@@ -356,6 +382,10 @@
       <div>
         <div class="card">
           <h2 class="section-title">1. Escolha a Plataforma & Unidade</h2>
+          <div id="platformContext" class="platform-context">
+            <span>📱</span>
+            <span>Plataforma selecionada: <strong>Aplicativo (APP)</strong></span>
+          </div>
           <div class="filtros">
             <div class="filtro-item">
               <label for="selectPlataforma"><strong>Plataforma / Canal:</strong></label>
@@ -521,7 +551,29 @@
     }
 
     function alternarPlataforma() {
-      // Forçar atualização do carrinho ou botão se necessário
+      const select = document.getElementById('selectPlataforma');
+      const nextPlatform = select.value;
+      const previousPlatform = select.dataset.previous || 'APP';
+      const platformNames = {
+        APP: 'Aplicativo (APP)',
+        WEB: 'Web Browser (WEB)',
+        BALCAO: 'Balcão (BALCÃO)',
+        TOTEM: 'Totem (TOTEM)',
+        PICKUP: 'Retirada (PICKUP)'
+      };
+
+      if (!confirm(`Confirmar a plataforma "${platformNames[nextPlatform]}"? O layout da tela será atualizado.`)) {
+        select.value = previousPlatform;
+        return;
+      }
+
+      select.dataset.previous = nextPlatform;
+      document.body.className = `platform-${nextPlatform.toLowerCase()}`;
+      const icons = { APP: '📱', WEB: '🌐', BALCAO: '🧾', TOTEM: '🖥️', PICKUP: '📦' };
+      document.getElementById('platformContext').innerHTML = `
+        <span>${icons[nextPlatform]}</span>
+        <span>Plataforma selecionada: <strong>${platformNames[nextPlatform]}</strong></span>
+      `;
       atualizarCarrinhoUI();
     }
 
@@ -734,6 +786,9 @@
 
     // Inicialização
     window.addEventListener('DOMContentLoaded', () => {
+      const selectPlataforma = document.getElementById('selectPlataforma');
+      selectPlataforma.dataset.previous = selectPlataforma.value;
+      document.body.className = `platform-${selectPlataforma.value.toLowerCase()}`;
       verificarAuth();
       carregarUnidades();
     });

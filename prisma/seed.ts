@@ -1,54 +1,106 @@
 import { PrismaClient } from '@prisma/client';
+import { hashPassword } from '../src/utils/password';
 
 const prisma = new PrismaClient();
+
+async function ensureUnidade(data: {
+  nome: string;
+  endereco: string;
+  ativa: boolean;
+}) {
+  const existing = await prisma.unidade.findFirst({ where: { nome: data.nome } });
+  return existing ?? prisma.unidade.create({ data });
+}
+
+async function ensureProdutos(
+  unidadeId: bigint,
+  produtos: Array<{
+    nome: string;
+    descricao: string;
+    categoria: string;
+    precoBase: number;
+    quantidadeEstoque: number;
+  }>
+) {
+  for (const produtoData of produtos) {
+    const existing = await prisma.produto.findFirst({
+      where: { unidadeId, nome: produtoData.nome }
+    });
+    const produto = existing ?? await prisma.produto.create({
+      data: {
+        nome: produtoData.nome,
+        descricao: produtoData.descricao,
+        categoria: produtoData.categoria,
+        precoBase: produtoData.precoBase,
+        unidadeId
+      }
+    });
+
+    await prisma.estoqueUnidade.upsert({
+      where: { unidadeId_produtoId: { unidadeId, produtoId: produto.id } },
+      update: {},
+      create: {
+        unidadeId,
+        produtoId: produto.id,
+        quantidade: produtoData.quantidadeEstoque
+      }
+    });
+  }
+}
+
+async function ensureUsuario(data: {
+  nome: string;
+  email: string;
+  senha: string;
+  perfil: 'ADMIN' | 'CLIENTE';
+}) {
+  const existing = await prisma.usuario.findUnique({ where: { email: data.email } });
+  if (existing) {
+    if (!existing.senha.includes(':')) {
+      return prisma.usuario.update({
+        where: { id: existing.id },
+        data: { senha: await hashPassword(data.senha), ativo: true }
+      });
+    }
+    return existing;
+  }
+
+  return prisma.usuario.create({
+    data: {
+      ...data,
+      senha: await hashPassword(data.senha),
+      ativo: true
+    }
+  });
+}
 
 async function main() {
   console.log('Starting full database seeding...');
 
-  //Limpar banco na ordem correta para respeitar FKs
-  console.log( 'Clearing old data...');
-  await prisma.logAuditoria.deleteMany({});
-  await prisma.pagamento.deleteMany({});
-  await prisma.itemPedido.deleteMany({});
-  await prisma.pedido.deleteMany({});
-  await prisma.estoqueUnidade.deleteMany({});
-  await prisma.produto.deleteMany({});
-  await prisma.unidade.deleteMany({});
-  await prisma.fidelidade.deleteMany({});
-  await prisma.usuario.deleteMany({});
-
   console.log('Preenchendo (unidades)');
 
-  const recife = await prisma.unidade.create({
-    data: {
-      nome: 'Raízes Recife - Marco Zero',
-      endereco: 'Praça Rio Branco, S/N - Recife Antigo, Recife - PE',
-      ativa: true,
-    },
+  const recife = await ensureUnidade({
+    nome: 'Raízes Recife - Marco Zero',
+    endereco: 'Praça Rio Branco, S/N - Recife Antigo, Recife - PE',
+    ativa: true,
   });
 
-  const salvador = await prisma.unidade.create({
-    data: {
-      nome: 'Raízes Salvador - Pelourinho',
-      endereco: 'Largo do Pelourinho, 12 - Centro Histórico, Salvador - BA',
-      ativa: true,
-    },
+  const salvador = await ensureUnidade({
+    nome: 'Raízes Salvador - Pelourinho',
+    endereco: 'Largo do Pelourinho, 12 - Centro Histórico, Salvador - BA',
+    ativa: true,
   });
 
-  const fortaleza = await prisma.unidade.create({
-    data: {
-      nome: 'Raízes Fortaleza - Beira Mar',
-      endereco: 'Av. Beira Mar, 2500 - Meireles, Fortaleza - CE',
-      ativa: true,
-    },
+  const fortaleza = await ensureUnidade({
+    nome: 'Raízes Fortaleza - Beira Mar',
+    endereco: 'Av. Beira Mar, 2500 - Meireles, Fortaleza - CE',
+    ativa: true,
   });
 
-  const natal = await prisma.unidade.create({
-    data: {
-      nome: 'Raízes Natal - Ponta Negra',
-      endereco: 'Av. Erivan França, 102 - Ponta Negra, Natal - RN',
-      ativa: true,
-    },
+  const natal = await ensureUnidade({
+    nome: 'Raízes Natal - Ponta Negra',
+    endereco: 'Av. Erivan França, 102 - Ponta Negra, Natal - RN',
+    ativa: true,
   });
 
   console.log('Unidades criadas!');
@@ -85,25 +137,7 @@ async function main() {
     },
   ];
 
-  for (const p of produtosRecife) {
-    const produto = await prisma.produto.create({
-      data: {
-        nome: p.nome,
-        descricao: p.descricao,
-        categoria: p.categoria,
-        precoBase: p.precoBase,
-        unidadeId: recife.id,
-      },
-    });
-
-    await prisma.estoqueUnidade.create({
-      data: {
-        unidadeId: recife.id,
-        produtoId: produto.id,
-        quantidade: p.quantidadeEstoque,
-      },
-    });
-  }
+  await ensureProdutos(recife.id, produtosRecife);
 
    console.log('Preenchendo unidades com produtos e estoque Salvador');
   const produtosSalvador = [
@@ -137,25 +171,7 @@ async function main() {
     },
   ];
 
-  for (const p of produtosSalvador) {
-    const produto = await prisma.produto.create({
-      data: {
-        nome: p.nome,
-        descricao: p.descricao,
-        categoria: p.categoria,
-        precoBase: p.precoBase,
-        unidadeId: salvador.id,
-      },
-    });
-
-    await prisma.estoqueUnidade.create({
-      data: {
-        unidadeId: salvador.id,
-        produtoId: produto.id,
-        quantidade: p.quantidadeEstoque,
-      },
-    });
-  }
+  await ensureProdutos(salvador.id, produtosSalvador);
 
   console.log('Preenchendo unidades com produtos e estoque Fortaleza');
   const produtosFortaleza = [
@@ -189,25 +205,7 @@ async function main() {
     },
   ];
 
-  for (const p of produtosFortaleza) {
-    const produto = await prisma.produto.create({
-      data: {
-        nome: p.nome,
-        descricao: p.descricao,
-        categoria: p.categoria,
-        precoBase: p.precoBase,
-        unidadeId: fortaleza.id,
-      },
-    });
-
-    await prisma.estoqueUnidade.create({
-      data: {
-        unidadeId: fortaleza.id,
-        produtoId: produto.id,
-        quantidade: p.quantidadeEstoque,
-      },
-    });
-  }
+  await ensureProdutos(fortaleza.id, produtosFortaleza);
  console.log('Preenchendo unidades com produtos e estoque Natal');
   const produtosNatal = [
     {
@@ -240,45 +238,21 @@ async function main() {
     },
   ];
 
-  for (const p of produtosNatal) {
-    const produto = await prisma.produto.create({
-      data: {
-        nome: p.nome,
-        descricao: p.descricao,
-        categoria: p.categoria,
-        precoBase: p.precoBase,
-        unidadeId: natal.id,
-      },
-    });
-
-    await prisma.estoqueUnidade.create({
-      data: {
-        unidadeId: natal.id,
-        produtoId: produto.id,
-        quantidade: p.quantidadeEstoque,
-      },
-    });
-  }
+  await ensureProdutos(natal.id, produtosNatal);
 
   console.log('Preenchendo com usuarios de teste');
-  const adminUser = await prisma.usuario.create({
-    data: {
-      nome: 'Administrador do Sistema',
-      email: 'admin@raizesnordeste.com',
-      senha: 'adminsecret123',
-      perfil: 'ADMIN',
-      ativo: true,
-    },
+  const adminUser = await ensureUsuario({
+    nome: 'Administrador do Sistema',
+    email: 'admin@raizesnordeste.com',
+    senha: 'adminsecret123',
+    perfil: 'ADMIN'
   });
 
-  const clienteUser = await prisma.usuario.create({
-    data: {
-      nome: 'Maria Silva',
-      email: 'maria@email.com',
-      senha: 'mariasecret123',
-      perfil: 'CLIENTE',
-      ativo: true,
-    },
+  const clienteUser = await ensureUsuario({
+    nome: 'Maria Silva',
+    email: 'maria@email.com',
+    senha: 'mariasecret123',
+    perfil: 'CLIENTE'
   });
 
   console.log(`Base de dados preenchida com sucesso!`);
