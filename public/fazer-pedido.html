@@ -695,13 +695,33 @@
         }
 
         const pedidoCriado = await response.json();
+        const pagamentoResponse = await fetch(`${API_URL}/pagamentos/mock`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            pedidoId: pedidoCriado.pedidoId,
+            metodoPagamento: formaPagamento,
+            simularAprovacao: true
+          })
+        });
+
+        if (!pagamentoResponse.ok) {
+          const pagamentoError = await pagamentoResponse.json();
+          throw new Error(pagamentoError.message || 'Não foi possível confirmar o pagamento.');
+        }
+
+        const pagamento = await pagamentoResponse.json();
         
         const totalPedido = Number(pedidoCriado.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         document.getElementById('modalMensagem').innerHTML = `
           Seu pedido <strong>#${pedidoCriado.pedidoId}</strong> foi gerado com sucesso!<br>
           Canal: <strong>${pedidoCriado.canalPedido}</strong><br>
-          Status: <strong>${pedidoCriado.status.replace('_', ' ')}</strong><br>
-          Total pago: <strong style="color: #27ae60;">${totalPedido}</strong><br><br>
+          Pagamento: <strong>${pagamento.status}</strong><br>
+          Status: <strong>${pagamento.pedidoStatus.replace('_', ' ')}</strong><br>
+          Total confirmado: <strong style="color: #27ae60;">${totalPedido}</strong><br><br>
           O painel de preparação da cozinha já foi alertado!
         `;
         

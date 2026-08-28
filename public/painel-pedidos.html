@@ -252,7 +252,7 @@
       <div class="select-unidade-container">
         <label for="selectUnidade"><strong>Unidade de Preparação:</strong></label>
         <select id="selectUnidade" onchange="carregarPedidos()">
-          <option value="">A carregar unidades...</option>
+          <option value="TODAS">Todas as unidades</option>
         </select>
       </div>
 
@@ -265,6 +265,18 @@
           <option value="BALCAO">Balcão (BALCÃO)</option>
           <option value="TOTEM">Totem (TOTEM)</option>
           <option value="PICKUP">Retirada (PICKUP)</option>
+        </select>
+      </div>
+
+      <div class="select-unidade-container">
+        <label for="selectStatus"><strong>Filtrar por Status:</strong></label>
+        <select id="selectStatus" onchange="carregarPedidos()">
+          <option value="">Todos os Status</option>
+          <option value="AGUARDANDO_PAGAMENTO">Aguardando pagamento</option>
+          <option value="EM_PREPARACAO">Em preparação</option>
+          <option value="PRONTO">Pronto</option>
+          <option value="ENTREGUE">Entregue</option>
+          <option value="CANCELADO">Cancelado</option>
         </select>
       </div>
 
@@ -302,21 +314,18 @@
         if (!response.ok) throw new Error('Erro ao buscar unidades.');
         const unidades = await response.json();
 
-        select.innerHTML = '<option value="">Selecione uma unidade...</option>';
+        select.innerHTML = '<option value="TODAS">Todas as unidades</option>';
         unidades.forEach((unidade, index) => {
           const option = document.createElement('option');
           option.value = unidade.id;
           option.textContent = unidade.nome;
           
-          // Seleciona a primeira unidade automaticamente por padrão
-          if (index === 0) {
-            option.selected = true;
-          }
           select.appendChild(option);
         });
 
-        // Se tiver unidades carregadas, carrega os pedidos da unidade padrão selecionada
+        // Carrega todos os pedidos por padrão.
         if (unidades.length > 0) {
+          select.value = 'TODAS';
           carregarPedidos();
         }
       } catch (error) {
@@ -329,6 +338,7 @@
       const painel = document.getElementById('painelPedidos');
       const unidadeId = document.getElementById('selectUnidade').value;
       const canalPedido = document.getElementById('selectCanal')?.value;
+      const status = document.getElementById('selectStatus')?.value;
 
       if (!unidadeId) {
         painel.innerHTML = '<div class="no-orders">Por favor, selecione uma unidade para ver os pedidos.</div>';
@@ -336,10 +346,14 @@
       }
 
       try {
-        let url = `${API_URL}/unidades/${unidadeId}/pedidos`;
-        if (canalPedido) {
-          url += `?canalPedido=${canalPedido}`;
-        }
+        let url = unidadeId === 'TODAS'
+          ? `${API_URL}/pedidos`
+          : `${API_URL}/unidades/${unidadeId}/pedidos`;
+        const params = new URLSearchParams();
+        if (canalPedido) params.set('canalPedido', canalPedido);
+        if (status) params.set('status', status);
+        const query = params.toString();
+        if (query) url += `?${query}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error('Erro ao carregar pedidos.');
         const pedidos = await response.json();
@@ -367,6 +381,7 @@
 
           // Nome do cliente
           const nomeCliente = pedido.usuario?.nome || 'Cliente Desconhecido';
+          const nomeUnidade = pedido.unidade?.nome || 'Unidade não identificada';
 
           // Itens HTML
           let itensHtml = '';
@@ -404,7 +419,7 @@
               </ul>
             </div>
             <div class="pedido-footer">
-              <span>Cliente: <strong>${nomeCliente}</strong> | Horário: ${dataPedido}</span>
+              <span>Unidade: <strong>${nomeUnidade}</strong> | Cliente: <strong>${nomeCliente}</strong> | Horário: ${dataPedido}</span>
               <span class="pedido-total">${totalFormatado}</span>
             </div>
           `;

@@ -4,15 +4,19 @@ import { authMiddleware } from '../middlewares/authMiddleware';
 import { prisma } from '../database/prismaClient';
 import crypto from 'crypto';
 import { verifyPassword } from '../utils/password';
+import { PagamentoController } from '../controllers/PagamentoController';
 
 const pedidoRoutes = Router();
 const controller = new PedidoController();
+const pagamentoController = new PagamentoController();
 
 // Exige autenticação JWT
 pedidoRoutes.post('/pedidos', authMiddleware, controller.criarPedido);
 
 // Listagem de pedidos de uma unidade específica (para painel)
-pedidoRoutes.get('/unidades/:unidadeId/pedidos', controller.listarPedidosPorUnidade);
+pedidoRoutes.get('/unidades/:unidadeId/pedidos', controller.listarPedidosPorUnidade.bind(controller));
+pedidoRoutes.get('/pedidos', controller.listarTodosPedidos.bind(controller));
+pedidoRoutes.post('/pagamentos/mock', authMiddleware, pagamentoController.processarMock);
 
 // ROTA DE LOGIN DO USUÁRIO
 pedidoRoutes.post('/auth/login', async (req, res) => {
